@@ -1,4 +1,4 @@
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "https://healthtriage-backend-s5rz.onrender.com";
 
 const API_KEY = "demo-healthtriage-key";
 
