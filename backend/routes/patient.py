@@ -3,6 +3,8 @@ from pathlib import Path
 import uuid
 from fastapi.responses import FileResponse
 
+from backend.services.report_service import analyze_report
+
 
 router = APIRouter(
     prefix="/api/patient",
@@ -51,6 +53,7 @@ async def upload_file(
     # -----------------------------------------------------
 
     if not file.filename:
+
         raise HTTPException(
             status_code=400,
             detail="No file selected."
@@ -161,10 +164,26 @@ async def upload_file(
 
 
     # -----------------------------------------------------
+    # Analyze PDF report
+    # -----------------------------------------------------
+
+    report_analysis = None
+
+
+    if file.content_type == "application/pdf":
+
+        report_analysis = analyze_report(
+            file_path=str(file_path),
+            file_type=file.content_type
+        )
+
+
+    # -----------------------------------------------------
     # Return upload information
     # -----------------------------------------------------
 
     return {
+
         "message": "File uploaded successfully",
 
         "filename": file.filename,
@@ -173,7 +192,9 @@ async def upload_file(
 
         "file_type": file.content_type,
 
-        "size": len(file_content)
+        "size": len(file_content),
+
+        "report_analysis": report_analysis
     }
 
 
