@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Triage Result | HealthTriage</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        /* =====================================================
+           RESULT PAGE
+           ===================================================== */
+
+        .result-main {
+            min-height: calc(100vh - 72px);
+            padding: 52px 20px 80px;
+            background:
+                radial-gradient(circle at 90% 0%, rgba(53, 112, 145, 0.07), transparent 28%),
+                linear-gradient(180deg, #f7fafc 0%, #f3f7fa 100%);
+        }
+
+        .result-container {
+            width: min(900px, 100%);
+            margin: 0 auto;
+        }
+
+        /* HEADING */
+
+        .result-heading {
+            margin-bottom: 34px;
+        }
+
+        .result-heading h1 {
+            margin: 15px 0 10px;
+            font-size: clamp(2rem, 4vw, 2.8rem);
+            line-height: 1.1;
+            letter-spacing: -1px;
+            color: #18334d;
+        }
+
+        .result-heading p {
+            margin: 0;
+            color: #6d7f8e;
+            font-size: 0.98rem;
+            line-height: 1.7;
+        }
+
+
+        /* =====================================================
+           MAIN RESULT CARD
+           ===================================================== */
+
+        .result-card {
+            padding: 32px;
+            margin-bottom: 24px;
+            background: #ffffff;
+            border: 1px solid #e3ebef;
+            border-radius: 20px;
+            box-shadow: 0 10px 35px rgba(31, 53, 72, 0.07);
+        }
+
+        .result-status {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .result-circle {
+            width: 64px;
+            height: 64px;
+            flex: 0 0 64px;
+            display: grid;
+            place-items: center;
+            border-radius: 18px;
+            background: #fff4d9;
+            color: #a46b00;
+            font-size: 1.6rem;
+            font-weight: 900;
+        }
+
+        .result-label {
+            display: block;
+            margin-bottom: 5px;
+            color: #8796a1;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+        }
+
+        .result-status h2 {
+            margin: 0;
+            color: #a46b00;
+            font-size: 2rem;
+            letter-spacing: 0.5px;
+        }
+
+        .result-status p {
+            margin: 5px 0 0;
+            color: #687b89;
+            font-size: 0.9rem;
+        }
+
+
+        /* CONFIDENCE */
+
+        .result-confidence {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid #edf1f3;
+        }
+
+        .confidence-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .confidence-header span {
+            color: #5d7180;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .confidence-header strong {
+            color: #29465c;
+            font-size: 1rem;
+        }
+
+        .confidence-bar {
+            height: 9px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: #edf1f3;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #4c8997, #65a4ad);
+            transition: width 0.7s ease;
+        }
+
+
+        /* =====================================================
+           CONTENT SECTIONS
+           ===================================================== */
+
+        .result-section {
+            margin-bottom: 24px;
+            padding: 29px;
+            background: #ffffff;
+            border: 1px solid #e3ebef;
+            border-radius: 18px;
+            box-shadow: 0 7px 28px rgba(31, 53, 72, 0.045);
+        }
+
+        .result-section-title {
+            margin-bottom: 20px;
+        }
+
+        .result-section-title h2 {
+            margin: 0 0 5px;
+            color: #203b53;
+            font-size: 1.15rem;
+        }
+
+        .result-section-title p {
+            margin: 0;
+            color: #8796a1;
+            font-size: 0.83rem;
+        }
+
+
+        /* SUMMARY */
+
+        .summary-box {
+            padding: 20px;
+            border: 1px solid #e1eaee;
+            border-radius: 13px;
+            background: #f7fafb;
+            color: #526877;
+            font-size: 0.92rem;
+            line-height: 1.7;
+        }
+
+
+        /* =====================================================
+           REASON LIST
+           ===================================================== */
+
+        .reason-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .reason-item {
+            display: flex;
+            gap: 16px;
+            padding: 17px 0;
+            border-bottom: 1px solid #edf1f3;
+        }
+
+        .reason-item:first-child {
+            padding-top: 0;
+        }
+
+        .reason-item:last-child {
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .reason-number {
+            width: 32px;
+            height: 32px;
+            flex: 0 0 32px;
+            display: grid;
+            place-items: center;
+            border-radius: 10px;
+            background: #edf5f7;
+            color: #317686;
+            font-size: 0.8rem;
+            font-weight: 800;
+        }
+
+        .reason-item strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #334d61;
+            font-size: 0.9rem;
+        }
+
+        .reason-item p {
+            margin: 0;
+            color: #778995;
+            font-size: 0.84rem;
+            line-height: 1.6;
+        }
+
+
+        /* =====================================================
+           IMPORTANT WARNING
+           ===================================================== */
+
+        .result-warning {
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+            margin-bottom: 25px;
+            padding: 21px;
+            border: 1px solid #eadfbf;
+            border-radius: 15px;
+            background: #fffbef;
+        }
+
+        .warning-icon {
+            width: 34px;
+            height: 34px;
+            flex: 0 0 34px;
+            display: grid;
+            place-items: center;
+            border-radius: 10px;
+            background: #f8e9b9;
+            color: #956800;
+            font-weight: 900;
+        }
+
+        .result-warning strong {
+            display: block;
+            margin-bottom: 4px;
+            color: #735415;
+            font-size: 0.9rem;
+        }
+
+        .result-warning p {
+            margin: 0;
+            color: #7d6c45;
+            font-size: 0.82rem;
+            line-height: 1.6;
+        }
+
+
+        /* =====================================================
+           ACTION
+           ===================================================== */
+
+        .result-actions {
+            margin-top: 10px;
+        }
+
+        .primary-result-button {
+            width: 100%;
+            min-height: 54px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #2d7180, #3f8793);
+            color: #ffffff;
+            font-size: 0.96rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(45, 113, 128, 0.2);
+            transition: 0.22s ease;
+        }
+
+        .primary-result-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px rgba(45, 113, 128, 0.27);
+        }
+
+        .result-disclaimer {
+            max-width: 720px;
+            margin: 18px auto 0;
+            text-align: center;
+            color: #87949e;
+            font-size: 0.76rem;
+            line-height: 1.6;
+        }
+
+
+        /* =====================================================
+           MOBILE
+           ===================================================== */
+
+        @media (max-width: 650px) {
+
+            .result-main {
+                padding: 32px 14px 55px;
+            }
+
+            .result-card,
+            .result-section {
+                padding: 22px;
+                border-radius: 15px;
+            }
+
+            .result-status {
+                gap: 14px;
+            }
+
+            .result-circle {
+                width: 54px;
+                height: 54px;
+                flex-basis: 54px;
+                border-radius: 15px;
+            }
+
+            .result-status h2 {
+                font-size: 1.65rem;
+            }
+
+            .result-heading h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- HEADER -->
+
+    <header class="patient-header">
+
+        <div class="patient-logo">
+            🩺 HealthTriage
+        </div>
+
+        <div class="header-right">
+
+            <span>
+                Triage Result
+            </span>
+
+            <button onclick="goHome()">
+                New Assessment
+            </button>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- MAIN -->
+
+    <main class="result-main">
+
+        <div class="result-container">
+
+
+            <!-- HEADING -->
+
+            <div class="result-heading">
+
+                <span class="page-badge">
+                    AI-ASSISTED TRIAGE RESULT
+                </span>
+
+                <h1>
+                    Your Assessment Result
+                </h1>
+
+                <p>
+                    The information you provided has been processed
+                    by the AI-assisted triage system.
+                </p>
+
+            </div>
+
+
+
+            <!-- RESULT CARD -->
+
+            <section class="result-card">
+
+                <div class="result-status">
+
+                    <div class="result-circle">
+                        !
+                    </div>
+
+                    <div>
+
+                        <span class="result-label">
+                            TRIAGE LEVEL
+                        </span>
+
+                        <h2>
+                            YELLOW
+                        </h2>
+
+                        <p>
+                            Urgent medical review recommended.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CONFIDENCE -->
+
+                <div class="result-confidence">
+
+                    <div class="confidence-header">
+
+                        <span>
+                            AI Confidence
+                        </span>
+
+                        <strong>
+                            82%
+                        </strong>
+
+                    </div>
+
+                    <div class="confidence-bar">
+
+                        <div class="confidence-fill"></div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- SUMMARY -->
+
+            <section class="result-section">
+
+                <div class="result-section-title">
+
+                    <h2>
+                        Case Summary
+                    </h2>
+
+                    <p>
+                        A simplified summary generated from
+                        the submitted information.
+                    </p>
+
+                </div>
+
+
+                <div class="summary-box">
+                    The submitted symptoms require timely
+                    assessment by healthcare staff.
+                </div>
+
+            </section>
+
+
+
+            <!-- WHY -->
+
+            <section class="result-section">
+
+                <div class="result-section-title">
+
+                    <h2>
+                        Why this result?
+                    </h2>
+
+                    <p>
+                        AI-generated explanation
+                    </p>
+
+                </div>
+
+
+                <div class="reason-list">
+
+                    <div class="reason-item">
+
+                        <div class="reason-number">
+                            1
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Symptoms considered
+                            </strong>
+
+                            <p>
+                                The system analyzed the symptoms
+                                entered during the assessment.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="reason-item">
+
+                        <div class="reason-number">
+                            2
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Urgency assessed
+                            </strong>
+
+                            <p>
+                                The available information was
+                                evaluated using the current
+                                triage rules.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="reason-item">
+
+                        <div class="reason-number">
+                            3
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Human review
+                            </strong>
+
+                            <p>
+                                A healthcare professional should
+                                make the final decision based on
+                                the complete clinical situation.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- IMPORTANT -->
+
+            <section class="result-warning">
+
+                <div class="warning-icon">
+                    !
+                </div>
+
+                <div>
+
+                    <strong>
+                        Important
+                    </strong>
+
+                    <p>
+                        This is an AI-assisted triage recommendation,
+                        not a medical diagnosis. Healthcare
+                        professionals should make the final decision.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- ACTION -->
+
+            <div class="result-actions">
+
+                <button
+                    class="primary-result-button"
+                    onclick="goHome()">
+
+                    Start New Assessment
+
+                </button>
+
+            </div>
+
+
+
+            <!-- DISCLAIMER -->
+
+            <div class="result-disclaimer">
+
+                HealthTriage is designed to support healthcare
+                workflows. AI output may be uncertain and should
+                always be reviewed by qualified healthcare staff.
+
+            </div>
+
+
+        </div>
+
+    </main>
+
+
+
+    <script>
+
+        function goHome() {
+            window.location.href = "patient.html";
+        }
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const storedResult =
+                localStorage.getItem("triageResult");
+
+            if (!storedResult) {
+                console.log("No triage result found.");
+                return;
+            }
+
+
+            const result =
+                JSON.parse(storedResult);
+
+
+            /*
+             * Update result card
+             */
+
+            const resultCard =
+                document.querySelector(".result-card");
+
+
+            if (resultCard) {
+
+                const heading =
+                    resultCard.querySelector("h2");
+
+
+                if (heading) {
+
+                    heading.textContent =
+                        result.triage_level.toUpperCase();
+
+                }
+
+
+                /*
+                 * Confidence
+                 */
+
+                const confidence =
+                    resultCard.querySelector(
+                        ".confidence-header strong"
+                    );
+
+
+                if (confidence) {
+
+                    confidence.textContent =
+                        Math.round(
+                            result.confidence * 100
+                        ) + "%";
+
+                }
+
+
+                /*
+                 * Confidence bar
+                 */
+
+                const confidenceFill =
+                    resultCard.querySelector(
+                        ".confidence-fill"
+                    );
+
+
+                if (confidenceFill) {
+
+                    confidenceFill.style.width =
+                        Math.round(
+                            result.confidence * 100
+                        ) + "%";
+
+                }
+
+
+                /*
+                 * Dynamic status colours
+                 */
+
+                const circle =
+                    resultCard.querySelector(
+                        ".result-circle"
+                    );
+
+
+                const statusHeading =
+                    resultCard.querySelector("h2");
+
+
+                if (result.triage_level === "red") {
+
+                    if (circle) {
+                        circle.style.background = "#fde8e8";
+                        circle.style.color = "#b42318";
+                    }
+
+                    if (statusHeading) {
+                        statusHeading.style.color = "#b42318";
+                    }
+
+                }
+
+                else if (
+                    result.triage_level === "yellow"
+                ) {
+
+                    if (circle) {
+                        circle.style.background = "#fff4d9";
+                        circle.style.color = "#a46b00";
+                    }
+
+                    if (statusHeading) {
+                        statusHeading.style.color = "#a46b00";
+                    }
+
+                }
+
+                else {
+
+                    if (circle) {
+                        circle.style.background = "#e7f5ed";
+                        circle.style.color = "#28784d";
+                    }
+
+                    if (statusHeading) {
+                        statusHeading.style.color = "#28784d";
+                    }
+
+                }
+
+            }
+
+
+
+            /*
+             * Update summary
+             */
+
+            const summaryBox =
+                document.querySelector(".summary-box");
+
+
+            if (summaryBox) {
+
+                summaryBox.textContent =
+                    result.summary;
+
+            }
+
+
+
+            /*
+             * Update reasoning
+             */
+
+            const reasonItems =
+                document.querySelectorAll(
+                    ".reason-item"
+                );
+
+
+            if (reasonItems.length >= 2) {
+
+                const reasoningText =
+                    reasonItems[1].querySelector("p");
+
+
+                if (reasoningText) {
+
+                    reasoningText.textContent =
+                        result.reasoning;
+
+                }
+
+            }
+
+
+
+            /*
+             * Update urgency description
+             */
+
+            const resultDescription =
+                document.querySelector(
+                    ".result-status p"
+                );
+
+
+            if (resultDescription) {
+
+                if (
+                    result.triage_level === "red"
+                ) {
+
+                    resultDescription.textContent =
+                        "Immediate medical attention may be required.";
+
+                }
+
+                else if (
+                    result.triage_level === "yellow"
+                ) {
+
+                    resultDescription.textContent =
+                        "Timely medical review may be appropriate.";
+
+                }
+
+                else {
+
+                    resultDescription.textContent =
+                        "No high-priority symptom was detected by the demo system.";
+
+                }
+
+            }
+
+        });
+
+    </script>
+
+</body>
+
+</html>

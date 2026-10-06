@@ -1,0 +1,33 @@
+﻿# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# Environment variables
+.env
+.env.*
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploaded patient files
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Logs
+*.log
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Local speech test files
+*.wav
+*.m4a
+
+# Local test environments
+odia_stt_test/

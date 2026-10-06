@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Case Details | HealthTriage</title>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+
+<body>
+
+    <!-- HEADER -->
+
+    <header class="dashboard-header">
+
+        <div class="dashboard-logo">
+            HealthTriage
+        </div>
+
+        <div class="dashboard-header-right">
+
+            <span>
+                Healthcare Staff
+            </span>
+
+            <button onclick="logout()">
+                Logout
+            </button>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- MAIN -->
+
+    <main class="case-main">
+
+        <div class="case-container">
+
+
+            <!-- BACK -->
+
+            <button
+                class="back-button"
+                onclick="goBack()">
+
+                ← Back to Queue
+
+            </button>
+
+
+
+            <!-- TITLE -->
+
+            <div class="case-heading">
+
+                <div>
+
+                    <span class="page-badge">
+                        CASE DETAILS
+                    </span>
+
+                    <h1 id="caseTitle">
+                        Case
+                    </h1>
+
+                    <p>
+                        AI-assisted triage assessment
+                    </p>
+
+                </div>
+
+
+                <span
+                    id="priorityBadge"
+                    class="priority-badge priority-red">
+
+                    RED
+
+                </span>
+
+            </div>
+
+
+
+            <!-- PATIENT INFORMATION -->
+
+            <section class="case-card">
+
+                <div class="case-card-title">
+
+                    <h2>
+                        Patient Information
+                    </h2>
+
+                </div>
+
+
+                <div class="patient-info-grid">
+
+
+                    <!-- PATIENT -->
+
+                    <div>
+
+                        <span class="info-label">
+                            Patient
+                        </span>
+
+                        <strong id="patientName">
+                            Loading...
+                        </strong>
+
+                    </div>
+
+
+                    <!-- AGE -->
+
+                    <div>
+
+                        <span class="info-label">
+                            Age
+                        </span>
+
+                        <strong id="patientAge">
+                            Loading...
+                        </strong>
+
+                    </div>
+
+
+                    <!-- GENDER -->
+
+                    <div>
+
+                        <span class="info-label">
+                            Gender
+                        </span>
+
+                        <strong id="patientGender">
+                            Loading...
+                        </strong>
+
+                    </div>
+
+
+                    <!-- CASE ID -->
+
+                    <div>
+
+                        <span class="info-label">
+                            Case ID
+                        </span>
+
+                        <strong id="caseId">
+                            Loading...
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- EXISTING CONDITIONS -->
+
+                <div style="margin-top: 20px;">
+
+                    <span class="info-label">
+                        Existing Conditions
+                    </span>
+
+                    <p id="existingConditions">
+                        Loading...
+                    </p>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- SYMPTOMS -->
+
+            <section class="case-card">
+
+                <div class="case-card-title">
+
+                    <div>
+
+                        <h2>
+                            Reported Symptoms
+                        </h2>
+
+                        <p>
+                            Original information provided by the patient
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    id="symptoms"
+                    class="symptom-display">
+
+                    Loading symptoms...
+
+                </div>
+
+            </section>
+
+
+
+            <!-- SUPPORTING INFORMATION -->
+
+            <section class="case-card">
+
+                <div class="case-card-title">
+
+                    <div>
+
+                        <h2>
+                            Supporting Information
+                        </h2>
+
+                        <p>
+                            Uploaded files and voice transcript
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="support-grid">
+
+
+                    <!-- VOICE -->
+
+                    <div class="support-item">
+
+                        <div class="support-icon">
+                            🎤
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Voice Transcript
+                            </strong>
+
+                            <p id="voiceTranscript">
+                                No voice transcript provided.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- IMAGE -->
+
+                    <div class="support-item">
+
+                        <div class="support-icon">
+                            🖼️
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Image
+                            </strong>
+
+                            <div id="imageSupport">
+
+                                <p>
+                                    No image uploaded.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- MEDICAL REPORT -->
+
+                    <div class="support-item">
+
+                        <div class="support-icon">
+                            📄
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Medical Report
+                            </strong>
+
+                            <div id="reportSupport">
+
+                                <p>
+                                    No medical report uploaded.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- AI ASSESSMENT -->
+
+            <section class="case-card ai-card">
+
+                <div class="case-card-title">
+
+                    <div>
+
+                        <span class="ai-label">
+                            AI ANALYSIS
+                        </span>
+
+                        <h2>
+                            Triage Recommendation
+                        </h2>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="ai-result-grid">
+
+
+                    <!-- LEVEL -->
+
+                    <div class="ai-result-box">
+
+                        <span class="info-label">
+                            Urgency Level
+                        </span>
+
+
+                        <div
+                            id="aiLevel"
+                            class="large-priority red-text">
+
+                            Loading...
+
+                        </div>
+
+
+                        <p id="triageLevel">
+                            Loading...
+
+                        </p>
+
+                    </div>
+
+
+
+                    <!-- CONFIDENCE -->
+
+                    <div class="ai-result-box">
+
+                        <span class="info-label">
+                        MediFusion AI Confidence
+                        </span>
+
+
+                        <div
+                            id="confidence"
+                            class="confidence-number">
+
+                            Loading...
+
+                        </div>
+
+
+                        <div class="confidence-bar">
+
+                            <div
+                                id="confidenceFill"
+                                class="confidence-fill"
+                                style="width: 0%;">
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- SUMMARY -->
+
+                <div class="reasoning-box">
+
+                    <h3>
+                        AI Summary
+                    </h3>
+
+                    <p id="summary">
+                        Loading...
+                    </p>
+
+                </div>
+
+
+
+                <!-- REASONING -->
+
+                <div class="reasoning-box">
+
+                    <h3>
+                        Why was this level assigned?
+                    </h3>
+
+                    <p id="reasoning">
+                        Loading...
+                    </p>
+
+                </div>
+
+
+
+                <!-- DETECTED FACTORS / EXPLAINABILITY -->
+
+                <div class="reasoning-box">
+
+                    <h3>
+                        🔎 Why this result?
+                    </h3>
+
+                    <div id="detectedFactors">
+
+                        <p>
+                            Loading explanation...
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+            <!-- =====================================================
+     MULTIMODAL ANALYSIS
+===================================================== -->
+
+            <section class="case-card">
+
+                <div class="case-card-title">
+
+                    <div>
+
+                        <span class="ai-label">
+                            MULTIMODAL ANALYSIS
+                        </span>
+
+                        <h2>
+                            AI Input Analysis
+                        </h2>
+
+                        <p>
+                            Summary of the information considered by the
+                            AI-assisted triage system.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="support-grid">
+
+
+                    <!-- TEXT -->
+
+                    <div class="support-item">
+
+                        <div class="support-icon">
+                            📝
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Text Input
+                            </strong>
+
+                            <p id="multimodalTextStatus">
+                                Checking...
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- VOICE -->
+
+                    <div class="support-item">
+
+                        <div class="support-icon">
+                            🎤
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Voice Input
+                            </strong>
+
+                            <p id="multimodalVoiceStatus">
+                                Checking...
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- IMAGE -->
+
+                    <div class="support-item">
+
+                        <div class="support-icon">
+                            🖼️
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Image Analysis
+                            </strong>
+
+                            <p id="multimodalImageStatus">
+                                Checking...
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- MEDIFUSION -->
+
+                    <div class="support-item">
+
+                        <div class="support-icon">
+                            🤖
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                MediFusion AI
+                            </strong>
+
+                            <p id="multimodalMediFusionStatus">
+                                Checking...
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- AI SIGNALS -->
+
+                <div class="reasoning-box">
+
+                    <h3>
+                        AI Signals
+                    </h3>
+
+                    <div id="multimodalSignals">
+
+                        <p>
+                            Loading multimodal signals...
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- MULTIMODAL SAFETY -->
+
+                <div class="reasoning-box">
+
+                    <h3>
+                        Review Requirement
+                    </h3>
+
+                    <p id="multimodalReviewStatus">
+                        Checking...
+                    </p>
+
+                </div>
+
+            </section>
+            <!-- =====================================================
+     HUMAN REVIEW STATUS
+===================================================== -->
+
+<div class="card">
+
+    <h2>👨‍⚕️ Human Review</h2>
+
+    <div id="humanReviewStatus">
+        Checking review status...
+    </div>
+
+    <p class="disclaimer">
+        AI-generated triage is decision support only.
+        Final clinical decisions must be made by qualified
+        healthcare staff.
+    </p>
+
+</div>
+
+            
+
+
+
+
+            <!-- MANUAL OVERRIDE -->
+
+            <section class="case-card">
+
+                <div class="case-card-title">
+
+                    <div>
+
+                        <h2>
+                            Clinical Decision
+                        </h2>
+
+                        <p>
+                            Healthcare staff can override
+                            the AI recommendation.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+
+                <div class="override-grid">
+
+
+                    <button
+                        class="override-button override-red"
+                        onclick="setDecision('RED')">
+
+                        RED
+
+                    </button>
+
+
+                    <button
+                        class="override-button override-yellow"
+                        onclick="setDecision('YELLOW')">
+
+                        YELLOW
+
+                    </button>
+
+
+                    <button
+                        class="override-button override-green"
+                        onclick="setDecision('GREEN')">
+
+                        GREEN
+
+                    </button>
+
+                </div>
+
+
+
+                <div
+                    id="decisionMessage"
+                    class="decision-message">
+
+                    Current final decision:
+
+                    <strong id="finalDecision">
+                        Not finalized
+                    </strong>
+
+                </div>
+
+            </section>
+
+<!-- =====================================================
+     DECISION HISTORY
+===================================================== -->
+
+<div class="card">
+
+    <h2>📋 Decision History</h2>
+
+    <div id="auditHistory">
+        <p>Loading decision history...</p>
+    </div>
+
+</div>
+
+            <!-- DISCLAIMER -->
+
+            <div class="case-disclaimer">
+
+                HealthTriage provides AI-assisted triage support.
+                It does not provide a medical diagnosis.
+                Final decisions remain with qualified healthcare
+                professionals.
+
+            </div>
+
+
+        </div>
+
+    </main>
+
+
+
+    <!-- JAVASCRIPT -->
+
+    <script src="js/case.js"></script>
+
+</body>
+
+</html>

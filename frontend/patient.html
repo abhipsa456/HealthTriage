@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>HealthTriage | Patient Assessment</title>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="patient-header">
+
+        <div class="patient-logo">
+            🩺 HealthTriage
+        </div>
+
+        <div class="header-right">
+
+            <span>
+                Patient Assessment
+            </span>
+
+            <button onclick="logout()">
+                Logout
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="patient-main">
+
+        <div class="assessment-container">
+
+
+            <!-- PAGE HEADING -->
+
+            <div class="assessment-heading">
+
+                <span class="page-badge">
+                    AI-ASSISTED TRIAGE
+                </span>
+
+                <h1>
+                    Tell us how you're feeling
+                </h1>
+
+                <p>
+                    Provide the information below so our system can
+                    help healthcare staff assess your urgency.
+                </p>
+
+            </div>
+
+
+            <!-- =====================================================
+                 01 PATIENT DETAILS
+            ====================================================== -->
+            
+            <div class="language-selector">
+    <label for="languageSelect">Language / भाषा / ଭାଷା</label>
+
+    <select id="languageSelect">
+        <option value="en">English</option>
+        <option value="hi">हिन्दी</option>
+        <option value="or">ଓଡ଼ିଆ</option>
+    </select>
+</div>
+
+            <section class="form-section">
+
+                <div class="section-title">
+
+                    <span>
+                        01
+                    </span>
+
+                    <div>
+
+                        <h2>
+                            Patient Details
+                        </h2>
+
+                        <p>
+                            Basic information about the patient
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-grid">
+
+
+                    <!-- NAME -->
+
+                    <div class="input-group">
+
+                        <label for="patientName">
+                            Patient Name
+                        </label>
+
+                        <input
+                            type="text"
+                            id="patientName"
+                            placeholder="Enter patient name"
+                        >
+
+                    </div>
+
+
+                    <!-- AGE -->
+
+                    <div class="input-group">
+
+                        <label for="age">
+                            Age
+                        </label>
+
+                        <input
+                            type="number"
+                            id="age"
+                            placeholder="Enter age"
+                            min="0"
+                            max="120"
+                        >
+
+                    </div>
+
+
+                    <!-- GENDER -->
+
+                    <div class="input-group">
+
+                        <label for="gender">
+                            Gender
+                        </label>
+
+                        <select id="gender">
+
+                            <option value="">
+                                Select gender
+                            </option>
+
+                            <option value="female">
+                                Female
+                            </option>
+
+                            <option value="male">
+                                Male
+                            </option>
+
+                            <option value="other">
+                                Other
+                            </option>
+
+                            <option value="prefer_not">
+                                Prefer not to say
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- EXISTING CONDITIONS -->
+
+                    <div class="input-group">
+
+                        <label for="conditions">
+                            Existing Conditions
+                        </label>
+
+                        <input
+                            type="text"
+                            id="conditions"
+                            placeholder="e.g. Diabetes, asthma"
+                        >
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =====================================================
+                 02 SYMPTOMS
+            ====================================================== -->
+
+            <section class="form-section">
+
+                <div class="section-title">
+
+                    <span>
+                        02
+                    </span>
+
+                    <div>
+
+                        <h2>
+                            Describe Your Symptoms
+                        </h2>
+
+                        <p>
+                            Type what you're experiencing in your
+                            own words.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="symptom-box">
+
+                    <textarea
+                        id="symptoms"
+                        rows="6"
+                        placeholder="For example: I have been having fever and cough for two days..."
+                    ></textarea>
+
+
+                    <div class="input-tools">
+
+                        <button
+                            type="button"
+                            class="tool-button"
+                            id="voiceButton"
+                            onclick="startVoiceInput()"
+                        >
+                            🎙️ Speak
+                        </button>
+
+                        <span class="tool-note">
+                            You can describe your symptoms naturally.
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =====================================================
+                 03 VITALS
+            ====================================================== -->
+
+            <section class="form-section">
+
+                <div class="section-title">
+
+                    <span>
+                        03
+                    </span>
+
+                    <div>
+
+                        <h2>
+                            Vitals
+                        </h2>
+
+                        <p>
+                            Optional clinical measurements, if available
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <p class="tool-note" style="margin-bottom: 18px;">
+                    Enter vitals only if they have been measured.
+                    Leave blank if unavailable.
+                </p>
+
+
+                <div class="form-grid">
+
+
+                    <!-- TEMPERATURE -->
+
+                    <div class="input-group">
+
+                        <label for="temperature">
+                            Temperature (°C)
+                        </label>
+
+                        <input
+                            type="number"
+                            id="temperature"
+                            placeholder="e.g. 37.5"
+                            min="25"
+                            max="45"
+                            step="0.1"
+                        >
+
+                    </div>
+
+
+                    <!-- HEART RATE -->
+
+                    <div class="input-group">
+
+                        <label for="heartRate">
+                            Heart Rate (BPM)
+                        </label>
+
+                        <input
+                            type="number"
+                            id="heartRate"
+                            placeholder="e.g. 80"
+                            min="20"
+                            max="250"
+                        >
+
+                    </div>
+
+
+                    <!-- SPO2 -->
+
+                    <div class="input-group">
+
+                        <label for="spo2">
+                            SpO₂ (%)
+                        </label>
+
+                        <input
+                            type="number"
+                            id="spo2"
+                            placeholder="e.g. 98"
+                            min="50"
+                            max="100"
+                            step="0.1"
+                        >
+
+                    </div>
+
+
+                    <!-- RESPIRATORY RATE -->
+
+                    <div class="input-group">
+
+                        <label for="respiratoryRate">
+                            Respiratory Rate (/min)
+                        </label>
+
+                        <input
+                            type="number"
+                            id="respiratoryRate"
+                            placeholder="e.g. 18"
+                            min="5"
+                            max="80"
+                        >
+
+                    </div>
+
+
+                    <!-- SYSTOLIC BP -->
+
+                    <div class="input-group">
+
+                        <label for="systolicBp">
+                            Systolic BP (mmHg)
+                        </label>
+
+                        <input
+                            type="number"
+                            id="systolicBp"
+                            placeholder="e.g. 120"
+                            min="50"
+                            max="250"
+                        >
+
+                    </div>
+
+
+                    <!-- DIASTOLIC BP -->
+
+                    <div class="input-group">
+
+                        <label for="diastolicBp">
+                            Diastolic BP (mmHg)
+                        </label>
+
+                        <input
+                            type="number"
+                            id="diastolicBp"
+                            placeholder="e.g. 80"
+                            min="20"
+                            max="150"
+                        >
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =====================================================
+                 04 MEDICAL HISTORY & ADDITIONAL INFORMATION
+            ====================================================== -->
+
+            <section class="form-section">
+
+                <div class="section-title">
+
+                    <span>
+                        04
+                    </span>
+
+                    <div>
+
+                        <h2>
+                            Medical History & Additional Information
+                        </h2>
+
+                        <p>
+                            Optional information that may help the AI-assisted assessment
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-grid">
+
+
+                    <!-- DIABETES -->
+
+                    <div class="input-group">
+
+                        <label for="diabetesHistory">
+                            Diabetes
+                        </label>
+
+                        <select id="diabetesHistory">
+
+                            <option value="">
+                                Select
+                            </option>
+
+                            <option value="yes">
+                                Yes
+                            </option>
+
+                            <option value="no">
+                                No
+                            </option>
+
+                            <option value="unknown">
+                                Unknown
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- HYPERTENSION -->
+
+                    <div class="input-group">
+
+                        <label for="hypertensionHistory">
+                            Hypertension
+                        </label>
+
+                        <select id="hypertensionHistory">
+
+                            <option value="">
+                                Select
+                            </option>
+
+                            <option value="yes">
+                                Yes
+                            </option>
+
+                            <option value="no">
+                                No
+                            </option>
+
+                            <option value="unknown">
+                                Unknown
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- ASTHMA -->
+
+                    <div class="input-group">
+
+                        <label for="asthmaHistory">
+                            Asthma
+                        </label>
+
+                        <select id="asthmaHistory">
+
+                            <option value="">
+                                Select
+                            </option>
+
+                            <option value="yes">
+                                Yes
+                            </option>
+
+                            <option value="no">
+                                No
+                            </option>
+
+                            <option value="unknown">
+                                Unknown
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- HEART DISEASE -->
+
+                    <div class="input-group">
+
+                        <label for="heartDiseaseHistory">
+                            Heart Disease
+                        </label>
+
+                        <select id="heartDiseaseHistory">
+
+                            <option value="">
+                                Select
+                            </option>
+
+                            <option value="yes">
+                                Yes
+                            </option>
+
+                            <option value="no">
+                                No
+                            </option>
+
+                            <option value="unknown">
+                                Unknown
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- PREVIOUS HOSPITALIZATION -->
+
+                    <div class="input-group">
+
+                        <label for="previousHospitalization">
+                            Previous Hospitalization
+                        </label>
+
+                        <select id="previousHospitalization">
+
+                            <option value="">
+                                Select
+                            </option>
+
+                            <option value="yes">
+                                Yes
+                            </option>
+
+                            <option value="no">
+                                No
+                            </option>
+
+                            <option value="unknown">
+                                Unknown
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- PAIN LEVEL -->
+
+                    <div class="input-group">
+
+                        <label for="painLevel">
+                            Pain Level (0–10)
+                        </label>
+
+                        <input
+                            type="number"
+                            id="painLevel"
+                            placeholder="e.g. 4"
+                            min="0"
+                            max="10"
+                            step="0.1"
+                        >
+
+                    </div>
+
+
+                    <!-- SYMPTOM DURATION -->
+
+                    <div class="input-group">
+
+                        <label for="symptomDuration">
+                            Symptom Duration (days)
+                        </label>
+
+                        <input
+                            type="number"
+                            id="symptomDuration"
+                            placeholder="e.g. 3"
+                            min="0"
+                            max="3650"
+                            step="0.1"
+                        >
+
+                    </div>
+
+
+                    <!-- MEDICATION COUNT -->
+
+                    <div class="input-group">
+
+                        <label for="medicationCount">
+                            Number of Medications
+                        </label>
+
+                        <input
+                            type="number"
+                            id="medicationCount"
+                            placeholder="e.g. 2"
+                            min="0"
+                            max="100"
+                        >
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =====================================================
+                 05 UPLOAD SUPPORTING INFORMATION
+            ====================================================== -->
+
+            <section class="form-section">
+
+                <div class="section-title">
+
+                    <span>
+                        05
+                    </span>
+
+                    <div>
+
+                        <h2>
+                            Upload Supporting Information
+                        </h2>
+
+                        <p>
+                            Optional: Add an image, prescription or
+                            medical report.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="upload-grid">
+
+
+                    <!-- IMAGE -->
+
+                    <label class="upload-card">
+
+                        <input
+                            type="file"
+                            id="imageUpload"
+                            accept="image/jpeg,image/png,image/webp"
+                            hidden
+                        >
+
+                        <div class="upload-icon">
+                            📷
+                        </div>
+
+                        <h3>
+                            Upload Image
+                        </h3>
+
+                        <p>
+                            Injury, rash, swelling or other visible
+                            symptoms
+                        </p>
+
+                        <span class="upload-link">
+                            Choose image
+                        </span>
+
+                        <small
+                            id="imageFileName"
+                            class="file-name">
+                        </small>
+
+                    </label>
+
+
+                    <!-- REPORT -->
+
+                    <label class="upload-card">
+
+                        <input
+                            type="file"
+                            id="reportUpload"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            hidden
+                        >
+
+                        <div class="upload-icon">
+                            📄
+                        </div>
+
+                        <h3>
+                            Medical Report
+                        </h3>
+
+                        <p>
+                            Upload a prescription or medical report
+                        </p>
+
+                        <span class="upload-link">
+                            Choose file
+                        </span>
+
+                        <small
+                            id="reportFileName"
+                            class="file-name">
+                        </small>
+
+                    </label>
+
+                </div>
+
+
+                <p
+                    id="uploadNote"
+                    class="tool-note"
+                    style="margin-top: 12px;">
+                    You may upload one image or one medical report.
+                </p>
+
+            </section>
+
+
+            <!-- =====================================================
+                 CONSENT
+            ====================================================== -->
+
+            <section class="consent-section">
+
+                <label class="consent-label">
+
+                    <input
+                        type="checkbox"
+                        id="consent"
+                    >
+
+                    <span>
+                        I consent to my submitted information being
+                        processed for AI-assisted triage and reviewed
+                        by healthcare staff.
+                    </span>
+
+                </label>
+
+            </section>
+
+
+            <!-- =====================================================
+                 SUBMIT
+            ====================================================== -->
+
+            <button
+                type="button"
+                id="analyzeButton"
+                onclick="analyzeCase()">
+
+                Analyze Case
+
+            </button>
+
+
+            <!-- DISCLAIMER -->
+
+            <p class="disclaimer">
+
+                ⚠️ <strong>Important:</strong>
+                HealthTriage provides AI-assisted triage support
+                and is not a diagnosis. A healthcare professional
+                has the final decision.
+
+            </p>
+
+
+        </div>
+
+    </main>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script src="js/patient.js"></script>
+    <script src="js/offline.js"></script>
+    <script src="js/language.js"></script>
+
+</body>
+
+</html>

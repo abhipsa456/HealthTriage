@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>HealthTriage | Sign In</title>
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <style>
+        /* =================================================
+           MODERN LOGIN PAGE
+           ================================================= */
+
+        .modern-login {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            background: #f4f8f8;
+        }
+
+        /* LEFT */
+
+        .modern-hero {
+            position: relative;
+            overflow: hidden;
+
+            padding: 55px 7vw;
+
+            background:
+                radial-gradient(
+                    circle at 85% 20%,
+                    rgba(255,255,255,0.12),
+                    transparent 30%
+                ),
+                linear-gradient(
+                    145deg,
+                    #0d5c63,
+                    #073f45
+                );
+
+            color: white;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .modern-hero::before {
+            content: "";
+            position: absolute;
+
+            width: 500px;
+            height: 500px;
+
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 50%;
+
+            right: -220px;
+            bottom: -180px;
+        }
+
+        .modern-hero::after {
+            content: "";
+            position: absolute;
+
+            width: 250px;
+            height: 250px;
+
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 50%;
+
+            right: 80px;
+            bottom: 60px;
+        }
+
+        .brand {
+            position: relative;
+            z-index: 2;
+
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            font-size: 23px;
+            font-weight: 700;
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 12px;
+
+            background: rgba(255,255,255,0.13);
+            backdrop-filter: blur(10px);
+
+            font-size: 21px;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+
+            max-width: 650px;
+        }
+
+        .hero-tag {
+            display: inline-block;
+
+            padding: 7px 13px;
+
+            margin-bottom: 25px;
+
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 30px;
+
+            background: rgba(255,255,255,0.08);
+
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .hero-content h1 {
+            font-size: clamp(48px, 5vw, 72px);
+            line-height: 1.02;
+            letter-spacing: -2.5px;
+
+            margin-bottom: 25px;
+        }
+
+        .hero-content h1 span {
+            color: #a9dddd;
+        }
+
+        .hero-content p {
+            max-width: 570px;
+
+            font-size: 17px;
+            line-height: 1.75;
+
+            color: #d6eeee;
+        }
+
+        .hero-features {
+            position: relative;
+            z-index: 2;
+
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .hero-feature {
+            padding: 10px 14px;
+
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 10px;
+
+            background: rgba(255,255,255,0.07);
+
+            color: #d6eeee;
+
+            font-size: 12px;
+        }
+
+        /* RIGHT */
+
+        .modern-login-panel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 45px;
+        }
+
+        .modern-login-card {
+            width: 100%;
+            max-width: 450px;
+
+            padding: 42px;
+
+            background: rgba(255,255,255,0.96);
+
+            border: 1px solid #e1eeee;
+            border-radius: 22px;
+
+            box-shadow:
+                0 20px 60px rgba(24,59,61,0.10);
+        }
+
+        .modern-login-card h2 {
+            color: #183b3d;
+
+            font-size: 30px;
+            letter-spacing: -0.8px;
+
+            margin-bottom: 8px;
+        }
+
+        .modern-login-card .welcome-text {
+            color: #718080;
+
+            font-size: 14px;
+
+            margin-bottom: 32px;
+        }
+
+        .modern-field {
+            margin-bottom: 20px;
+        }
+
+        .modern-field label {
+            display: block;
+
+            margin-bottom: 8px;
+
+            color: #334c4e;
+
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .modern-field input {
+            width: 100%;
+
+            padding: 14px 15px;
+
+            border: 1px solid #d5e1e1;
+            border-radius: 10px;
+
+            outline: none;
+
+            font-size: 14px;
+
+            transition: 0.2s ease;
+        }
+
+        .modern-field input:focus {
+            border-color: #0d5c63;
+
+            box-shadow:
+                0 0 0 4px rgba(13,92,99,0.08);
+        }
+
+        .modern-role-title {
+            color: #334c4e;
+
+            font-size: 13px;
+            font-weight: 600;
+
+            margin-bottom: 10px;
+        }
+
+        .modern-role-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+
+            margin-bottom: 25px;
+        }
+
+        .modern-role {
+            position: relative;
+
+            padding: 16px;
+
+            border: 1px solid #d5e1e1;
+            border-radius: 12px;
+
+            cursor: pointer;
+
+            transition: 0.2s ease;
+        }
+
+        .modern-role:hover {
+            border-color: #0d5c63;
+            background: #f7fbfb;
+        }
+
+        .modern-role input {
+            position: absolute;
+            opacity: 0;
+        }
+
+        .modern-role-icon {
+            display: block;
+
+            width: 38px;
+            height: 38px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 10px;
+
+            background: #e4f2f2;
+
+            margin-bottom: 10px;
+
+            font-size: 18px;
+        }
+
+        .modern-role strong {
+            display: block;
+
+            color: #334c4e;
+
+            font-size: 13px;
+        }
+
+        .modern-role small {
+            display: block;
+
+            margin-top: 4px;
+
+            color: #8a9999;
+
+            font-size: 11px;
+        }
+
+        .modern-signin {
+            width: 100%;
+
+            padding: 15px;
+
+            border: none;
+            border-radius: 10px;
+
+            background: #0d5c63;
+            color: white;
+
+            font-size: 15px;
+            font-weight: 700;
+
+            cursor: pointer;
+
+            box-shadow:
+                0 8px 20px rgba(13,92,99,0.18);
+
+            transition: 0.2s ease;
+        }
+
+        .modern-signin:hover {
+            background: #08494f;
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 11px 25px rgba(13,92,99,0.22);
+        }
+
+        .modern-note {
+            text-align: center;
+
+            margin-top: 22px;
+
+            color: #9aa8a8;
+
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .modern-note strong {
+            color: #607778;
+        }
+
+
+        /* MOBILE */
+
+        @media (max-width: 850px) {
+
+            .modern-login {
+                grid-template-columns: 1fr;
+            }
+
+            .modern-hero {
+                min-height: 48vh;
+                padding: 35px 25px;
+            }
+
+            .hero-content h1 {
+                font-size: 48px;
+            }
+
+            .modern-login-panel {
+                padding: 25px;
+            }
+        }
+
+        @media (max-width: 500px) {
+
+            .modern-hero {
+                min-height: 45vh;
+            }
+
+            .hero-content h1 {
+                font-size: 40px;
+            }
+
+            .hero-content p {
+                font-size: 14px;
+            }
+
+            .modern-login-card {
+                padding: 28px 22px;
+                border-radius: 16px;
+            }
+
+            .modern-role-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="modern-login">
+
+    <!-- LEFT HERO -->
+
+    <section class="modern-hero">
+
+        <div class="brand">
+            <div class="brand-icon">🩺</div>
+            <span>HealthTriage</span>
+        </div>
+
+
+        <div class="hero-content">
+
+            <div class="hero-tag">
+                AI-assisted healthcare triage
+            </div>
+
+            <h1>
+                Smart triage.<br>
+                <span>Better care.</span>
+            </h1>
+
+            <p>
+                A multimodal triage assistant designed to help
+                healthcare facilities prioritize cases using
+                symptoms, vitals, voice, images and reports.
+            </p>
+
+        </div>
+
+
+        <div class="hero-features">
+
+            <div class="hero-feature">
+                🔐 Secure workflow
+            </div>
+
+            <div class="hero-feature">
+                🤖 AI-assisted
+            </div>
+
+            <div class="hero-feature">
+                👩‍⚕️ Human reviewed
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- RIGHT LOGIN -->
+
+    <section class="modern-login-panel">
+
+        <div class="modern-login-card">
+
+            <h2>Welcome back</h2>
+
+            <p class="welcome-text">
+                Sign in to continue to HealthTriage.
+            </p>
+
+
+            <form id="loginForm">
+
+                <div class="modern-field">
+
+                    <label for="userId">
+                        User ID
+                    </label>
+
+                    <input
+                        type="text"
+                        id="userId"
+                        placeholder="Enter your user ID"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="modern-field">
+
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <input
+                        type="password"
+                        id="password"
+                        placeholder="Enter your password"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="modern-role-title">
+                    Continue as
+                </div>
+
+
+                <div class="modern-role-options">
+
+                    <label class="modern-role">
+
+                        <input
+                            type="radio"
+                            name="role"
+                            value="patient"
+                            checked
+                        >
+
+                        <span class="modern-role-icon">
+                            👤
+                        </span>
+
+                        <strong>Patient</strong>
+
+                        <small>
+                            Submit a health assessment
+                        </small>
+
+                    </label>
+
+
+                    <label class="modern-role">
+
+                        <input
+                            type="radio"
+                            name="role"
+                            value="staff"
+                        >
+
+                        <span class="modern-role-icon">
+                            👩‍⚕️
+                        </span>
+
+                        <strong>Healthcare Staff</strong>
+
+                        <small>
+                            Review triage cases
+                        </small>
+
+                    </label>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="modern-signin"
+                >
+                    Sign in →
+                </button>
+
+            </form>
+
+
+            <div class="modern-note">
+                <strong>Demo application</strong><br>
+                AI-assisted triage • Human oversight required
+            </div>
+
+        </div>
+
+    </section>
+
+</div>
+
+
+<script src="js/login.js"></script>
+
+</body>
+</html>
