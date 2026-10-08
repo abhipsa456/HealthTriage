@@ -9,6 +9,8 @@ from backend.services.multimodal_service import analyze_multimodal
 from backend.services.medifusion_service import predict_triage
 from backend.database.database import get_connection
 from backend.services.security import verify_api_key
+from backend.services.cloud_service import save_case_to_cloud
+from backend.services.supabase_service import get_supabase
 
 
 router = APIRouter(
@@ -45,6 +47,7 @@ def triage_patient(request: TriageRequest):
             + request.voice_transcript.strip()
         ).strip()
 
+
     # -----------------------------------------------------
     # Build actual image path
     # -----------------------------------------------------
@@ -60,11 +63,13 @@ def triage_patient(request: TriageRequest):
         if candidate_path.exists():
             image_path = str(candidate_path)
 
+
     # =====================================================
     # STRUCTURED MEDIFUSION INPUT
     # =====================================================
 
     structured_data = {
+
         # Vitals
         "temperature": request.temperature,
         "heart_rate": request.heart_rate,
@@ -86,13 +91,15 @@ def triage_patient(request: TriageRequest):
         "medication_count": request.medication_count,
     }
 
-    # Remove fields that were not supplied.
+
+    # Remove fields that were not supplied
     structured_data = {
         key: value
         for key, value in structured_data.items()
         if value is not None
         and value != ""
     }
+
 
     # =====================================================
     # ANALYZE AVAILABLE MULTIMODAL INPUTS
@@ -108,6 +115,7 @@ def triage_patient(request: TriageRequest):
         image_file_type=request.image_file_type
     )
 
+
     # -----------------------------------------------------
     # Extract image analysis result
     # -----------------------------------------------------
@@ -119,6 +127,7 @@ def triage_patient(request: TriageRequest):
             "status": "no_image"
         }
     )
+
 
     # =====================================================
     # MEDIFUSION STRUCTURED AI ANALYSIS
@@ -150,12 +159,16 @@ def triage_patient(request: TriageRequest):
             "error": str(exc)
         }
 
+
     # =====================================================
     # UNIFIED MULTIMODAL SIGNALS
     # =====================================================
 
     multimodal_signals = {
-        "text_available": bool(request.symptoms),
+
+        "text_available": bool(
+            request.symptoms
+        ),
 
         "voice_available": bool(
             request.voice_transcript
@@ -192,6 +205,7 @@ def triage_patient(request: TriageRequest):
         )
     }
 
+
     # =====================================================
     # HUMAN REVIEW SAFETY GATE
     # =====================================================
@@ -203,7 +217,9 @@ def triage_patient(request: TriageRequest):
     ):
         multimodal_human_review_required = True
 
-    if medifusion_result.get("status") != "success":
+    if medifusion_result.get(
+        "status"
+    ) != "success":
         multimodal_human_review_required = True
 
     if image_analysis.get("available"):
@@ -219,6 +235,7 @@ def triage_patient(request: TriageRequest):
         ):
             multimodal_human_review_required = True
 
+
     # =====================================================
     # UNIFIED MULTIMODAL ASSESSMENT
     # =====================================================
@@ -226,7 +243,9 @@ def triage_patient(request: TriageRequest):
     unified_analysis = {
 
         "text": {
-            "available": bool(request.symptoms),
+            "available": bool(
+                request.symptoms
+            ),
             "source": "patient_symptoms"
         },
 
@@ -241,20 +260,25 @@ def triage_patient(request: TriageRequest):
             "available": bool(
                 image_analysis.get("available")
             ),
+
             "quality_status": image_analysis.get(
                 "quality_status"
             ),
+
             "visual_analysis": image_analysis.get(
                 "visual_analysis"
             )
         },
 
         "structured_inputs": {
-            "available": bool(structured_data),
+            "available": bool(
+                structured_data
+            ),
             "data": structured_data
         },
 
         "medifusion": {
+
             "available": medifusion_result.get(
                 "model_used",
                 False
@@ -316,6 +340,7 @@ def triage_patient(request: TriageRequest):
         )
     }
 
+
     # =====================================================
     # PRIMARY TRIAGE ENGINE
     # =====================================================
@@ -323,6 +348,7 @@ def triage_patient(request: TriageRequest):
     result = generate_triage(
         combined_symptoms
     )
+
 
     # =====================================================
     # INITIAL RESULT STATE
@@ -345,11 +371,14 @@ def triage_patient(request: TriageRequest):
         )
     )
 
+
     # =====================================================
     # ADD MEDIFUSION INFORMATION
     # =====================================================
 
-    if medifusion_result.get("model_used"):
+    if medifusion_result.get(
+        "model_used"
+    ):
 
         prediction = medifusion_result.get(
             "prediction"
@@ -369,6 +398,7 @@ def triage_patient(request: TriageRequest):
             []
         )
 
+
         # -------------------------------------------------
         # Add secondary AI signal
         # -------------------------------------------------
@@ -387,6 +417,7 @@ def triage_patient(request: TriageRequest):
                 f"MediFusion AI prediction: "
                 f"{prediction}"
             )
+
 
         # -------------------------------------------------
         # Explain structured input status
@@ -415,7 +446,8 @@ def triage_patient(request: TriageRequest):
                 "not a medical diagnosis."
             )
 
-        # MediFusion always requires human review.
+
+        # MediFusion always requires human review
         human_review_required = True
 
     else:
@@ -449,11 +481,14 @@ def triage_patient(request: TriageRequest):
 
         human_review_required = True
 
+
     # =====================================================
     # ANALYZE UPLOADED IMAGE QUALITY
     # =====================================================
 
-    if image_analysis.get("available"):
+    if image_analysis.get(
+        "available"
+    ):
 
         quality_status = image_analysis.get(
             "quality_status"
@@ -483,11 +518,14 @@ def triage_patient(request: TriageRequest):
 
             human_review_required = True
 
+
     # =====================================================
     # HANDLE VISUAL MODEL RESULT
     # =====================================================
 
-    if image_analysis.get("available"):
+    if image_analysis.get(
+        "available"
+    ):
 
         visual_analysis = image_analysis.get(
             "visual_analysis",
@@ -497,6 +535,7 @@ def triage_patient(request: TriageRequest):
         visual_status = visual_analysis.get(
             "status"
         )
+
 
         if visual_status == "model_not_loaded":
 
@@ -514,6 +553,7 @@ def triage_patient(request: TriageRequest):
 
             human_review_required = True
 
+
         elif visual_status == "model_adapter_not_configured":
 
             detected_factors.append(
@@ -529,6 +569,7 @@ def triage_patient(request: TriageRequest):
 
             human_review_required = True
 
+
         elif visual_status == "blocked_low_quality":
 
             detected_factors.append(
@@ -537,6 +578,7 @@ def triage_patient(request: TriageRequest):
             )
 
             human_review_required = True
+
 
         elif visual_status == "prediction_error":
 
@@ -551,11 +593,14 @@ def triage_patient(request: TriageRequest):
 
             human_review_required = True
 
+
     # =====================================================
     # ADD IMAGE INFORMATION TO REASONING
     # =====================================================
 
-    if image_analysis.get("available"):
+    if image_analysis.get(
+        "available"
+    ):
 
         if image_analysis.get(
             "quality_status"
@@ -579,6 +624,7 @@ def triage_patient(request: TriageRequest):
 
             human_review_required = True
 
+
     # =====================================================
     # FINAL HUMAN REVIEW DECISION
     # =====================================================
@@ -587,6 +633,7 @@ def triage_patient(request: TriageRequest):
         human_review_required
         or multimodal_human_review_required
     )
+
 
     # =====================================================
     # UPDATE FINAL RESULT
@@ -610,8 +657,9 @@ def triage_patient(request: TriageRequest):
         unified_analysis
     )
 
+
     # =====================================================
-    # SAVE CASE
+    # SAVE CASE TO LOCAL SQLITE
     # =====================================================
 
     connection = get_connection()
@@ -630,6 +678,7 @@ def triage_patient(request: TriageRequest):
             image_filename,
             image_stored_as,
             image_file_type,
+            report_analysis,
             triage_level,
             confidence,
             summary,
@@ -638,7 +687,10 @@ def triage_patient(request: TriageRequest):
             detected_factors,
             status
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (
+            ?, ?, ?, ?, ?, ?, ?, ?, ?,
+            ?, ?, ?, ?, ?, ?, ?, ?, ?
+        )
         """,
         (
             result["case_id"],
@@ -651,16 +703,28 @@ def triage_patient(request: TriageRequest):
             request.image_filename,
             request.image_stored_as,
             request.image_file_type,
+
+            (
+                json.dumps(
+                    request.report_analysis
+                )
+                if request.report_analysis
+                else None
+            ),
+
             result["triage_level"],
             result["confidence"],
             result["summary"],
             result["reasoning"],
+
             int(
                 result["human_review_required"]
             ),
+
             json.dumps(
                 result["detected_factors"]
             ),
+
             "WAITING"
         )
     )
@@ -668,60 +732,194 @@ def triage_patient(request: TriageRequest):
     connection.commit()
     connection.close()
 
+
+    # =====================================================
+    # SAVE CASE TO CLOUD
+    # =====================================================
+
+    cloud_case = {
+
+        "case_id": result["case_id"],
+
+        "patient_name": request.patient_name,
+        "age": request.age,
+        "gender": request.gender,
+        "existing_conditions": request.existing_conditions,
+
+        "symptoms": request.symptoms,
+        "voice_transcript": request.voice_transcript,
+
+        "triage_level": result["triage_level"],
+        "confidence": result["confidence"],
+
+        "summary": result["summary"],
+        "reasoning": result["reasoning"],
+
+        "human_review_required": bool(
+            result["human_review_required"]
+        ),
+
+        "final_decision": None,
+        "status": "WAITING",
+
+        "image_filename": request.image_filename,
+        "image_stored_as": request.image_stored_as,
+        "image_file_type": request.image_file_type,
+
+        "report_analysis": request.report_analysis,
+
+        "detected_factors": result[
+            "detected_factors"
+        ]
+    }
+
+
+    cloud_result = save_case_to_cloud(
+        cloud_case
+    )
+
+
+    if cloud_result:
+
+        print(
+            f"[Cloud Sync] Case "
+            f"{result['case_id']} "
+            "saved successfully."
+        )
+
+    else:
+
+        print(
+            f"[Cloud Sync] Case "
+            f"{result['case_id']} "
+            "could not be saved to cloud."
+        )
+
+
+    # =====================================================
+    # RETURN TRIAGE RESULT
+    # =====================================================
+
     return result
 
+@router.get("/debug/supabase")
+def debug_supabase():
+    import os
+
+    return {
+        "supabase_url_configured": bool(os.getenv("SUPABASE_URL")),
+        "supabase_service_key_configured": bool(
+            os.getenv("SUPABASE_SERVICE_KEY")
+        )
+    }
 
 # =========================================================
 # GET ALL CASES
 # =========================================================
 
 @router.get("/cases")
-def get_cases(
-    authorized: bool = Depends(verify_api_key)
-):
+def get_cases():
 
-    connection = get_connection()
-    cursor = connection.cursor()
+    """
+    Return triage cases for the healthcare staff dashboard.
 
-    cursor.execute(
-        """
-        SELECT *
-        FROM cases
-        ORDER BY
-            CASE
-                WHEN COALESCE(
-                    final_decision,
-                    triage_level
-                ) = 'red'
-                    THEN 1
+    Cloud-first:
+    1. Try Supabase
+    2. Fall back to local SQLite if cloud retrieval fails.
 
-                WHEN COALESCE(
-                    final_decision,
-                    triage_level
-                ) = 'yellow'
-                    THEN 2
+    This endpoint is read-only.
+    """
 
-                WHEN COALESCE(
-                    final_decision,
-                    triage_level
-                ) = 'green'
-                    THEN 3
+    # =====================================================
+    # TRY CLOUD FIRST
+    # =====================================================
 
-                ELSE 4
-            END,
+    try:
 
-            created_at DESC
-        """
-    )
+        supabase = get_supabase()
 
-    cases = cursor.fetchall()
+        response = (
+            supabase
+            .table("cases")
+            .select("*")
+            .order(
+                "created_at",
+                desc=True
+            )
+            .execute()
+        )
 
-    connection.close()
+        if response.data is not None:
 
-    return [
-        dict(case)
-        for case in cases
-    ]
+            return response.data
+
+
+    except Exception as error:
+
+        print(
+            "[Cloud Cases] "
+            f"Failed to retrieve cloud cases: {error}"
+        )
+
+
+    # =====================================================
+    # FALL BACK TO LOCAL SQLITE
+    # =====================================================
+
+    try:
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            SELECT *
+            FROM cases
+            ORDER BY
+                CASE
+                    WHEN COALESCE(
+                        final_decision,
+                        triage_level
+                    ) = 'red'
+                        THEN 1
+
+                    WHEN COALESCE(
+                        final_decision,
+                        triage_level
+                    ) = 'yellow'
+                        THEN 2
+
+                    WHEN COALESCE(
+                        final_decision,
+                        triage_level
+                    ) = 'green'
+                        THEN 3
+
+                    ELSE 4
+                END,
+
+                created_at DESC
+            """
+        )
+
+        cases = cursor.fetchall()
+
+        connection.close()
+
+        return [
+            dict(case)
+            for case in cases
+        ]
+
+
+    except Exception as error:
+
+        print(
+            "[Local Cases] "
+            f"Failed to retrieve cases: {error}"
+        )
+
+        return []
 
 
 # =========================================================
@@ -750,6 +948,7 @@ def get_case(
 
     connection.close()
 
+
     # -----------------------------------------------------
     # Case not found
     # -----------------------------------------------------
@@ -760,11 +959,13 @@ def get_case(
             "error": "Case not found"
         }
 
+
     # -----------------------------------------------------
     # Convert database row to dictionary
     # -----------------------------------------------------
 
     case_data = dict(case)
+
 
     # -----------------------------------------------------
     # Convert detected factors from JSON to list
@@ -785,21 +986,35 @@ def get_case(
 
         case_data["detected_factors"] = []
 
+
+    # -----------------------------------------------------
+    # Convert report analysis from JSON to object
+    # -----------------------------------------------------
+
+    try:
+
+        case_data["report_analysis"] = json.loads(
+            case_data.get(
+                "report_analysis"
+            ) or "null"
+        )
+
+    except (
+        json.JSONDecodeError,
+        TypeError
+    ):
+
+        case_data["report_analysis"] = None
+
+
     # -----------------------------------------------------
     # Re-run MediFusion for Case Details
-    # -----------------------------------------------------
-    #
-    # The database stores the primary triage result.
-    # MediFusion's detailed analysis is reconstructed here
-    # so the Case Details page can display its AI signal.
-    #
-    # Only information stored in the database is used here.
-    # Missing structured inputs remain missing.
     # -----------------------------------------------------
 
     try:
 
         medifusion_result = predict_triage(
+
             age=case_data.get(
                 "age"
             ),
@@ -815,6 +1030,7 @@ def get_case(
 
             structured_data={}
         )
+
 
         case_data["multimodal_analysis"] = {
 
@@ -877,6 +1093,7 @@ def get_case(
                     )
             },
 
+
             "signals": {
 
                 "medifusion_available":
@@ -896,6 +1113,7 @@ def get_case(
                     )
             },
 
+
             "human_review_required": True,
 
             "disclaimer": (
@@ -906,12 +1124,14 @@ def get_case(
             )
         }
 
+
     except Exception as error:
 
         print(
             "MediFusion case-detail analysis error:",
             error
         )
+
 
         case_data["multimodal_analysis"] = {
 
@@ -938,6 +1158,7 @@ def get_case(
                 "model_status": "error"
             },
 
+
             "signals": {
 
                 "medifusion_available": False,
@@ -946,6 +1167,7 @@ def get_case(
 
                 "medifusion_confidence": None
             },
+
 
             "human_review_required": True,
 
@@ -956,6 +1178,7 @@ def get_case(
                 "review."
             )
         }
+
 
     return case_data
 
@@ -988,6 +1211,7 @@ def finalize_case(
         .strip()
     )
 
+
     # -----------------------------------------------------
     # Validate decision
     # -----------------------------------------------------
@@ -1000,6 +1224,7 @@ def finalize_case(
                 "Use red, yellow, or green."
             )
         }
+
 
     # -----------------------------------------------------
     # Find case
@@ -1019,6 +1244,7 @@ def finalize_case(
 
     case = cursor.fetchone()
 
+
     if case is None:
 
         connection.close()
@@ -1027,6 +1253,7 @@ def finalize_case(
             "error": "Case not found"
         }
 
+
     # -----------------------------------------------------
     # Previous decision
     # -----------------------------------------------------
@@ -1034,6 +1261,7 @@ def finalize_case(
     previous_decision = (
         case["final_decision"]
     )
+
 
     # -----------------------------------------------------
     # Update final decision + status
@@ -1053,6 +1281,7 @@ def finalize_case(
             case_id
         )
     )
+
 
     # -----------------------------------------------------
     # Record audit event
@@ -1076,8 +1305,10 @@ def finalize_case(
         )
     )
 
+
     connection.commit()
     connection.close()
+
 
     return {
         "message": "Case finalized successfully",
@@ -1119,6 +1350,7 @@ def get_case_audit(
     audit_entries = cursor.fetchall()
 
     connection.close()
+
 
     return [
         dict(entry)
