@@ -66,26 +66,7 @@ def initialize_database():
 
             detected_factors TEXT,
 
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-
-    # =========================================================
-    # AUDIT LOG TABLE
-    # =========================================================
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS case_audit_log (
-
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-            case_id TEXT NOT NULL,
-
-            action TEXT NOT NULL,
-
-            previous_decision TEXT,
-
-            new_decision TEXT,
+            report_analysis TEXT,
 
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -100,6 +81,7 @@ def initialize_database():
     # =========================================================
 
     cursor.execute("PRAGMA table_info(cases)")
+
     existing_columns = {
         column[1]
         for column in cursor.fetchall()
@@ -129,6 +111,14 @@ def initialize_database():
             ADD COLUMN detected_factors TEXT
         """)
 
+    # Add report analysis column if missing
+    if "report_analysis" not in existing_columns:
+
+        cursor.execute("""
+            ALTER TABLE cases
+            ADD COLUMN report_analysis TEXT
+        """)
+
     # Add image filename column if missing
     if "image_filename" not in existing_columns:
 
@@ -152,6 +142,27 @@ def initialize_database():
             ALTER TABLE cases
             ADD COLUMN image_file_type TEXT
         """)
+
+    # =========================================================
+    # AUDIT LOG TABLE
+    # =========================================================
+
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS case_audit_log (
+
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+            case_id TEXT NOT NULL,
+
+            action TEXT NOT NULL,
+
+            previous_decision TEXT,
+
+            new_decision TEXT,
+
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
 
     # =========================================================
     # COMMIT
