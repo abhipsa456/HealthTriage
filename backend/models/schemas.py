@@ -112,6 +112,8 @@ class TriageRequest(BaseModel):
         le=100
     )
 
+    report_analysis: Optional[dict] = None
+
 
     # -----------------------------
     # Uploaded Files
