@@ -926,263 +926,520 @@ def get_cases():
 # GET SINGLE CASE
 # =========================================================
 
+# =========================================================
+# GET SINGLE CASE
+# =========================================================
+
 @router.get("/cases/{case_id}")
 def get_case(
     case_id: str,
     authorized: bool = Depends(verify_api_key)
 ):
 
-    connection = get_connection()
-    cursor = connection.cursor()
-
-    cursor.execute(
-        """
-        SELECT *
-        FROM cases
-        WHERE case_id = ?
-        """,
-        (case_id,)
-    )
-
-    case = cursor.fetchone()
-
-    connection.close()
-
-
-    # -----------------------------------------------------
-    # Case not found
-    # -----------------------------------------------------
-
-    if case is None:
-
-        return {
-            "error": "Case not found"
-        }
-
-
-    # -----------------------------------------------------
-    # Convert database row to dictionary
-    # -----------------------------------------------------
-
-    case_data = dict(case)
-
-
-    # -----------------------------------------------------
-    # Convert detected factors from JSON to list
-    # -----------------------------------------------------
+    # =====================================================
+    # TRY SUPABASE FIRST
+    # =====================================================
 
     try:
 
-        case_data["detected_factors"] = json.loads(
-            case_data.get(
-                "detected_factors"
-            ) or "[]"
+        supabase = get_supabase()
+
+        response = (
+            supabase
+            .table("cases")
+            .select("*")
+            .eq("case_id", case_id)
+            .limit(1)
+            .execute()
         )
 
-    except (
-        json.JSONDecodeError,
-        TypeError
-    ):
+        if response.data:
 
-        case_data["detected_factors"] = []
+            case_data = response.data[0]
 
-
-    # -----------------------------------------------------
-    # Convert report analysis from JSON to object
-    # -----------------------------------------------------
-
-    try:
-
-        case_data["report_analysis"] = json.loads(
-            case_data.get(
-                "report_analysis"
-            ) or "null"
-        )
-
-    except (
-        json.JSONDecodeError,
-        TypeError
-    ):
-
-        case_data["report_analysis"] = None
-
-
-    # -----------------------------------------------------
-    # Re-run MediFusion for Case Details
-    # -----------------------------------------------------
-
-    try:
-
-        medifusion_result = predict_triage(
-
-            age=case_data.get(
-                "age"
-            ),
-
-            gender=case_data.get(
-                "gender"
-            ),
-
-            symptoms=case_data.get(
-                "symptoms",
-                ""
-            ),
-
-            structured_data={}
-        )
-
-
-        case_data["multimodal_analysis"] = {
-
-            "medifusion": {
-
-                "available":
-                    medifusion_result.get(
-                        "model_used",
-                        False
-                    ),
-
-                "status":
-                    medifusion_result.get(
-                        "status"
-                    ),
-
-                "prediction":
-                    medifusion_result.get(
-                        "prediction"
-                    ),
-
-                "confidence":
-                    medifusion_result.get(
-                        "confidence"
-                    ),
-
-                "probabilities":
-                    medifusion_result.get(
-                        "probabilities",
-                        {}
-                    ),
-
-                "extracted_symptoms":
-                    medifusion_result.get(
-                        "extracted_symptoms",
-                        {}
-                    ),
-
-                "features_used":
-                    medifusion_result.get(
-                        "features_used",
-                        {}
-                    ),
-
-                "data_sufficient":
-                    medifusion_result.get(
-                        "data_sufficient",
-                        False
-                    ),
-
-                "missing_fields":
-                    medifusion_result.get(
-                        "missing_structured_fields",
-                        []
-                    ),
-
-                "model_status":
-                    medifusion_result.get(
-                        "model_status"
-                    )
-            },
-
-
-            "signals": {
-
-                "medifusion_available":
-                    medifusion_result.get(
-                        "model_used",
-                        False
-                    ),
-
-                "medifusion_prediction":
-                    medifusion_result.get(
-                        "prediction"
-                    ),
-
-                "medifusion_confidence":
-                    medifusion_result.get(
-                        "confidence"
-                    )
-            },
-
-
-            "human_review_required": True,
-
-            "disclaimer": (
-                "This is an AI-assisted triage prototype "
-                "and not a medical diagnosis. Final decisions "
-                "require appropriate healthcare professional "
-                "review."
+            print(
+                f"[Cloud Case] "
+                f"Loaded case {case_id} from Supabase."
             )
-        }
+
+            # -------------------------------------------------
+            # Convert detected factors from JSON if necessary
+            # -------------------------------------------------
+
+            if isinstance(
+                case_data.get("detected_factors"),
+                str
+            ):
+
+                try:
+
+                    case_data["detected_factors"] = json.loads(
+                        case_data["detected_factors"]
+                    )
+
+                except (
+                    json.JSONDecodeError,
+                    TypeError
+                ):
+
+                    case_data["detected_factors"] = []
+
+            elif case_data.get(
+                "detected_factors"
+            ) is None:
+
+                case_data["detected_factors"] = []
+
+
+            # -------------------------------------------------
+            # Convert report analysis from JSON if necessary
+            # -------------------------------------------------
+
+            if isinstance(
+                case_data.get("report_analysis"),
+                str
+            ):
+
+                try:
+
+                    case_data["report_analysis"] = json.loads(
+                        case_data["report_analysis"]
+                    )
+
+                except (
+                    json.JSONDecodeError,
+                    TypeError
+                ):
+
+                    case_data["report_analysis"] = None
+
+
+            # -------------------------------------------------
+            # Re-run MediFusion for Case Details
+            # -------------------------------------------------
+
+            try:
+
+                medifusion_result = predict_triage(
+
+                    age=case_data.get("age"),
+
+                    gender=case_data.get("gender"),
+
+                    symptoms=case_data.get(
+                        "symptoms",
+                        ""
+                    ),
+
+                    structured_data={}
+                )
+
+
+                case_data["multimodal_analysis"] = {
+
+                    "medifusion": {
+
+                        "available":
+                            medifusion_result.get(
+                                "model_used",
+                                False
+                            ),
+
+                        "status":
+                            medifusion_result.get(
+                                "status"
+                            ),
+
+                        "prediction":
+                            medifusion_result.get(
+                                "prediction"
+                            ),
+
+                        "confidence":
+                            medifusion_result.get(
+                                "confidence"
+                            ),
+
+                        "probabilities":
+                            medifusion_result.get(
+                                "probabilities",
+                                {}
+                            ),
+
+                        "extracted_symptoms":
+                            medifusion_result.get(
+                                "extracted_symptoms",
+                                {}
+                            ),
+
+                        "features_used":
+                            medifusion_result.get(
+                                "features_used",
+                                {}
+                            ),
+
+                        "data_sufficient":
+                            medifusion_result.get(
+                                "data_sufficient",
+                                False
+                            ),
+
+                        "missing_fields":
+                            medifusion_result.get(
+                                "missing_structured_fields",
+                                []
+                            ),
+
+                        "model_status":
+                            medifusion_result.get(
+                                "model_status"
+                            )
+                    },
+
+                    "signals": {
+
+                        "medifusion_available":
+                            medifusion_result.get(
+                                "model_used",
+                                False
+                            ),
+
+                        "medifusion_prediction":
+                            medifusion_result.get(
+                                "prediction"
+                            ),
+
+                        "medifusion_confidence":
+                            medifusion_result.get(
+                                "confidence"
+                            )
+                    },
+
+                    "human_review_required": True,
+
+                    "disclaimer": (
+                        "This is an AI-assisted triage prototype "
+                        "and not a medical diagnosis. Final decisions "
+                        "require appropriate healthcare professional "
+                        "review."
+                    )
+                }
+
+
+            except Exception as error:
+
+                print(
+                    "MediFusion cloud case-detail "
+                    f"analysis error: {error}"
+                )
+
+                case_data["multimodal_analysis"] = {
+
+                    "medifusion": {
+
+                        "available": False,
+
+                        "status": "model_error",
+
+                        "prediction": None,
+
+                        "confidence": None,
+
+                        "probabilities": {},
+
+                        "extracted_symptoms": {},
+
+                        "features_used": {},
+
+                        "data_sufficient": False,
+
+                        "missing_fields": [],
+
+                        "model_status": "error"
+                    },
+
+                    "signals": {
+
+                        "medifusion_available": False,
+
+                        "medifusion_prediction": None,
+
+                        "medifusion_confidence": None
+                    },
+
+                    "human_review_required": True,
+
+                    "disclaimer": (
+                        "This is an AI-assisted triage prototype "
+                        "and not a medical diagnosis. Final decisions "
+                        "require appropriate healthcare professional "
+                        "review."
+                    )
+                }
+
+
+            return case_data
 
 
     except Exception as error:
 
         print(
-            "MediFusion case-detail analysis error:",
-            error
+            "[Cloud Case] "
+            f"Failed to retrieve {case_id}: {error}"
         )
 
 
-        case_data["multimodal_analysis"] = {
+    # =====================================================
+    # FALL BACK TO LOCAL SQLITE
+    # =====================================================
 
-            "medifusion": {
+    try:
 
-                "available": False,
+        connection = get_connection()
+        cursor = connection.cursor()
 
-                "status": "model_error",
+        cursor.execute(
+            """
+            SELECT *
+            FROM cases
+            WHERE case_id = ?
+            """,
+            (case_id,)
+        )
 
-                "prediction": None,
+        case = cursor.fetchone()
 
-                "confidence": None,
-
-                "probabilities": {},
-
-                "extracted_symptoms": {},
-
-                "features_used": {},
-
-                "data_sufficient": False,
-
-                "missing_fields": [],
-
-                "model_status": "error"
-            },
+        connection.close()
 
 
-            "signals": {
+        if case is None:
 
-                "medifusion_available": False,
-
-                "medifusion_prediction": None,
-
-                "medifusion_confidence": None
-            },
+            return {
+                "error": "Case not found"
+            }
 
 
-            "human_review_required": True,
+        case_data = dict(case)
 
-            "disclaimer": (
-                "This is an AI-assisted triage prototype "
-                "and not a medical diagnosis. Final decisions "
-                "require appropriate healthcare professional "
-                "review."
+
+        # -------------------------------------------------
+        # Convert detected factors from JSON to list
+        # -------------------------------------------------
+
+        try:
+
+            case_data["detected_factors"] = json.loads(
+                case_data.get(
+                    "detected_factors"
+                ) or "[]"
             )
+
+        except (
+            json.JSONDecodeError,
+            TypeError
+        ):
+
+            case_data["detected_factors"] = []
+
+
+        # -------------------------------------------------
+        # Convert report analysis from JSON to object
+        # -------------------------------------------------
+
+        try:
+
+            case_data["report_analysis"] = json.loads(
+                case_data.get(
+                    "report_analysis"
+                ) or "null"
+            )
+
+        except (
+            json.JSONDecodeError,
+            TypeError
+        ):
+
+            case_data["report_analysis"] = None
+
+
+        # -------------------------------------------------
+        # Re-run MediFusion for local Case Details
+        # -------------------------------------------------
+
+        try:
+
+            medifusion_result = predict_triage(
+
+                age=case_data.get("age"),
+
+                gender=case_data.get("gender"),
+
+                symptoms=case_data.get(
+                    "symptoms",
+                    ""
+                ),
+
+                structured_data={}
+            )
+
+
+            case_data["multimodal_analysis"] = {
+
+                "medifusion": {
+
+                    "available":
+                        medifusion_result.get(
+                            "model_used",
+                            False
+                        ),
+
+                    "status":
+                        medifusion_result.get(
+                            "status"
+                        ),
+
+                    "prediction":
+                        medifusion_result.get(
+                            "prediction"
+                        ),
+
+                    "confidence":
+                        medifusion_result.get(
+                            "confidence"
+                        ),
+
+                    "probabilities":
+                        medifusion_result.get(
+                            "probabilities",
+                            {}
+                        ),
+
+                    "extracted_symptoms":
+                        medifusion_result.get(
+                            "extracted_symptoms",
+                            {}
+                        ),
+
+                    "features_used":
+                        medifusion_result.get(
+                            "features_used",
+                            {}
+                        ),
+
+                    "data_sufficient":
+                        medifusion_result.get(
+                            "data_sufficient",
+                            False
+                        ),
+
+                    "missing_fields":
+                        medifusion_result.get(
+                            "missing_structured_fields",
+                            []
+                        ),
+
+                    "model_status":
+                        medifusion_result.get(
+                            "model_status"
+                        )
+                },
+
+                "signals": {
+
+                    "medifusion_available":
+                        medifusion_result.get(
+                            "model_used",
+                            False
+                        ),
+
+                    "medifusion_prediction":
+                        medifusion_result.get(
+                            "prediction"
+                        ),
+
+                    "medifusion_confidence":
+                        medifusion_result.get(
+                            "confidence"
+                        )
+                },
+
+                "human_review_required": True,
+
+                "disclaimer": (
+                    "This is an AI-assisted triage prototype "
+                    "and not a medical diagnosis. Final decisions "
+                    "require appropriate healthcare professional "
+                    "review."
+                )
+            }
+
+
+        except Exception as error:
+
+            print(
+                "MediFusion local case-detail "
+                f"analysis error: {error}"
+            )
+
+
+            case_data["multimodal_analysis"] = {
+
+                "medifusion": {
+
+                    "available": False,
+
+                    "status": "model_error",
+
+                    "prediction": None,
+
+                    "confidence": None,
+
+                    "probabilities": {},
+
+                    "extracted_symptoms": {},
+
+                    "features_used": {},
+
+                    "data_sufficient": False,
+
+                    "missing_fields": [],
+
+                    "model_status": "error"
+                },
+
+                "signals": {
+
+                    "medifusion_available": False,
+
+                    "medifusion_prediction": None,
+
+                    "medifusion_confidence": None
+                },
+
+                "human_review_required": True,
+
+                "disclaimer": (
+                    "This is an AI-assisted triage prototype "
+                    "and not a medical diagnosis. Final decisions "
+                    "require appropriate healthcare professional "
+                    "review."
+                )
+            }
+
+
+        return case_data
+
+
+    except Exception as error:
+
+        print(
+            "[Local Case] "
+            f"Failed to retrieve {case_id}: {error}"
+        )
+
+        return {
+            "error": "Case not found"
         }
-
-
-    return case_data
-
-
 # =========================================================
 # FINALIZE / MANUAL CLINICAL DECISION
 # =========================================================
