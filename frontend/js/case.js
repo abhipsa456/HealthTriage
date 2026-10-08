@@ -2,13 +2,24 @@ const API_URL = "https://healthtriage-backend-s5rz.onrender.com";
 
 const API_KEY = "demo-healthtriage-key";
 
+
+// =========================================================
+// HELPER: SET TEXT
+// =========================================================
+
 function setText(id, value) {
+
     const element = document.getElementById(id);
 
     if (element) {
         element.textContent = value ?? "";
     }
 }
+
+
+// =========================================================
+// LOAD CASE
+// =========================================================
 
 async function loadCase() {
 
@@ -20,14 +31,31 @@ async function loadCase() {
     const caseId =
         params.get("id");
 
+
+    // -----------------------------------------------------
+    // CHECK CASE ID
+    // -----------------------------------------------------
+
     if (!caseId) {
 
+        console.error(
+            "No case ID found in URL."
+        );
+
         alert(
-            "No case ID provided."
+            "No case ID provided.\n\n" +
+            "Please open the case from the dashboard."
         );
 
         return;
     }
+
+
+    console.log(
+        "Loading case:",
+        caseId
+    );
+
 
     try {
 
@@ -35,23 +63,92 @@ async function loadCase() {
             await fetch(
                 `${API_URL}/api/cases/${encodeURIComponent(caseId)}`,
                 {
+                    method: "GET",
+
                     headers: {
-                        "X-API-Key": API_KEY
+                        "X-API-Key":
+                            API_KEY
                     }
                 }
             );
 
+
+        // -------------------------------------------------
+        // HANDLE HTTP ERRORS
+        // -------------------------------------------------
+
         if (!response.ok) {
 
-            throw new Error(
-                "Failed to load case."
+            let errorMessage =
+                `HTTP ${response.status}`;
+
+            try {
+
+                const errorData =
+                    await response.json();
+
+                if (errorData.error) {
+
+                    errorMessage =
+                        errorData.error;
+                }
+
+            } catch (_) {
+                // Ignore JSON parsing failure
+            }
+
+
+            console.error(
+                "Case request failed:",
+                errorMessage
             );
+
+
+            if (response.status === 404) {
+
+                alert(
+                    `Case not found: ${caseId}`
+                );
+
+            } else {
+
+                alert(
+                    "Unable to load case.\n\n" +
+                    errorMessage
+                );
+            }
+
+            return;
         }
+
+
+        // -------------------------------------------------
+        // READ RESPONSE
+        // -------------------------------------------------
 
         const caseData =
             await response.json();
 
-        if (caseData.error) {
+
+        console.log(
+            "Case data received:",
+            caseData
+        );
+
+
+        // -------------------------------------------------
+        // BACKEND ERROR OBJECT
+        // -------------------------------------------------
+
+        if (
+            !caseData ||
+            caseData.error
+        ) {
+
+            console.error(
+                "Backend returned an error:",
+                caseData
+            );
 
             alert(
                 "Case not found."
@@ -61,18 +158,18 @@ async function loadCase() {
         }
 
 
-        // =====================================================
+        // =================================================
         // BASIC CASE INFORMATION
-        // =====================================================
+        // =================================================
 
         setText(
             "caseTitle",
-            `Case ${caseData.case_id}`
+            `Case ${caseData.case_id || caseId}`
         );
 
         setText(
             "caseId",
-            caseData.case_id
+            caseData.case_id || caseId
         );
 
         setText(
@@ -112,9 +209,9 @@ async function loadCase() {
         );
 
 
-        // =====================================================
+        // =================================================
         // DETERMINE TRIAGE LEVEL
-        // =====================================================
+        // =================================================
 
         const level = (
             caseData.final_decision ||
@@ -123,32 +220,40 @@ async function loadCase() {
         ).toLowerCase();
 
 
-        // =====================================================
-        // UPDATE PRIORITY / URGENCY
-        // =====================================================
+        // =================================================
+        // UPDATE PRIORITY DISPLAY
+        // =================================================
 
         updatePriorityDisplay(
             level
         );
 
 
-        // =====================================================
+        // =================================================
         // MEDIFUSION AI CONFIDENCE
-        // =====================================================
+        // =================================================
 
         const medifusion =
             caseData
                 .multimodal_analysis
                 ?.medifusion || {};
 
+
         const medifusionConfidence =
             medifusion.confidence;
 
+
         let confidencePercent = null;
+
 
         if (
             medifusionConfidence !== null &&
-            medifusionConfidence !== undefined
+            medifusionConfidence !== undefined &&
+            !Number.isNaN(
+                Number(
+                    medifusionConfidence
+                )
+            )
         ) {
 
             confidencePercent =
@@ -160,9 +265,9 @@ async function loadCase() {
         }
 
 
-        // -----------------------------------------------------
-        // Display MediFusion confidence
-        // -----------------------------------------------------
+        // -------------------------------------------------
+        // DISPLAY CONFIDENCE
+        // -------------------------------------------------
 
         setText(
             "confidence",
@@ -172,14 +277,15 @@ async function loadCase() {
         );
 
 
-        // -----------------------------------------------------
-        // Confidence bar
-        // -----------------------------------------------------
+        // -------------------------------------------------
+        // CONFIDENCE BAR
+        // -------------------------------------------------
 
         const confidenceFill =
             document.getElementById(
                 "confidenceFill"
             );
+
 
         if (confidenceFill) {
 
@@ -190,9 +296,9 @@ async function loadCase() {
         }
 
 
-        // =====================================================
+        // =================================================
         // AI SUMMARY & REASONING
-        // =====================================================
+        // =================================================
 
         setText(
             "summary",
@@ -207,18 +313,18 @@ async function loadCase() {
         );
 
 
-        // =====================================================
+        // =================================================
         // EXPLAINABILITY
-        // =====================================================
+        // =================================================
 
         displayDetectedFactors(
             caseData.detected_factors
         );
 
 
-        // =====================================================
+        // =================================================
         // HUMAN REVIEW
-        // =====================================================
+        // =================================================
 
         updateHumanReviewStatus(
             caseData.human_review_required,
@@ -226,9 +332,9 @@ async function loadCase() {
         );
 
 
-        // =====================================================
+        // =================================================
         // FINAL DECISION
-        // =====================================================
+        // =================================================
 
         setText(
             "finalDecision",
@@ -238,15 +344,26 @@ async function loadCase() {
         );
 
 
-        // =====================================================
+        // =================================================
         // SUPPORTING INFORMATION
-        // =====================================================
+        // =================================================
 
         loadSupportingInformation(
             caseData
         );
 
+
+        // =================================================
+        // AUDIT HISTORY
+        // =================================================
+
         loadAuditHistory(
+            caseId
+        );
+
+
+        console.log(
+            "Case loaded successfully:",
             caseId
         );
 
@@ -259,7 +376,8 @@ async function loadCase() {
 
         alert(
             "Unable to load case details.\n\n" +
-            "Please make sure the backend is running."
+            "Please check your internet connection " +
+            "and try again."
         );
     }
 }
@@ -313,7 +431,7 @@ function updatePriorityDisplay(level) {
 
 
     // -----------------------------------------------------
-    // Header priority badge
+    // HEADER PRIORITY BADGE
     // -----------------------------------------------------
 
     if (priorityBadge) {
@@ -334,7 +452,7 @@ function updatePriorityDisplay(level) {
 
 
     // -----------------------------------------------------
-    // Large AI urgency level
+    // LARGE AI URGENCY LEVEL
     // -----------------------------------------------------
 
     if (aiLevel) {
@@ -355,7 +473,7 @@ function updatePriorityDisplay(level) {
 
 
     // -----------------------------------------------------
-    // Human-readable urgency
+    // HUMAN-READABLE URGENCY
     // -----------------------------------------------------
 
     if (triageLevel) {
@@ -398,7 +516,9 @@ function loadSupportingInformation(
         );
 
 
-    if (!caseData.image_stored_as) {
+    if (
+        !caseData.image_stored_as
+    ) {
 
         if (imageContainer) {
 
@@ -421,6 +541,7 @@ function loadSupportingInformation(
             caseData.image_stored_as
         )}`;
 
+
     const fileType =
         caseData.image_file_type || "";
 
@@ -430,7 +551,9 @@ function loadSupportingInformation(
     // -----------------------------------------------------
 
     if (
-        fileType.startsWith("image/")
+        fileType.startsWith(
+            "image/"
+        )
     ) {
 
         if (imageContainer) {
@@ -449,12 +572,15 @@ function loadSupportingInformation(
 
                 <p>
                     ${
-                        caseData.image_filename ||
-                        "Uploaded image"
+                        escapeHtml(
+                            caseData.image_filename ||
+                            "Uploaded image"
+                        )
                     }
                 </p>
             `;
         }
+
 
         if (reportContainer) {
 
@@ -480,8 +606,10 @@ function loadSupportingInformation(
             reportContainer.innerHTML = `
                 <p>
                     ${
-                        caseData.image_filename ||
-                        "Medical report"
+                        escapeHtml(
+                            caseData.image_filename ||
+                            "Medical report"
+                        )
                     }
                 </p>
 
@@ -495,6 +623,7 @@ function loadSupportingInformation(
                 </a>
             `;
         }
+
 
         if (imageContainer) {
 
@@ -516,13 +645,16 @@ function loadSupportingInformation(
             "<p>No image uploaded.</p>";
     }
 
+
     if (reportContainer) {
 
         reportContainer.innerHTML = `
             <p>
                 ${
-                    caseData.image_filename ||
-                    "Uploaded file"
+                    escapeHtml(
+                        caseData.image_filename ||
+                        "Uploaded file"
+                    )
                 }
             </p>
 
@@ -580,7 +712,9 @@ function displayDetectedFactors(
             ${factors.map(
                 factor => `
                     <li>
-                        ${escapeHtml(factor)}
+                        ${escapeHtml(
+                            factor
+                        )}
                     </li>
                 `
             ).join("")}
@@ -616,7 +750,10 @@ function updateHumanReviewStatus(
 
     if (
         confidence !== null &&
-        confidence !== undefined
+        confidence !== undefined &&
+        !Number.isNaN(
+            Number(confidence)
+        )
     ) {
 
         confidenceText =
@@ -764,7 +901,7 @@ async function setDecision(
         );
 
 
-        loadCase();
+        await loadCase();
 
 
     } catch (error) {
@@ -776,7 +913,7 @@ async function setDecision(
 
         alert(
             "Unable to finalize the case.\n\n" +
-            "Please make sure the backend is running."
+            error.message
         );
     }
 }
@@ -872,11 +1009,13 @@ async function loadAuditHistory(
                                 .toUpperCase()
                             : "NONE";
 
+
                     const current =
                         entry.new_decision
                             ? entry.new_decision
                                 .toUpperCase()
                             : "NONE";
+
 
                     const date =
                         entry.created_at ||
