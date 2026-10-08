@@ -1468,10 +1468,9 @@ def finalize_case(
         .strip()
     )
 
-
-    # -----------------------------------------------------
-    # Validate decision
-    # -----------------------------------------------------
+    # =====================================================
+    # VALIDATE DECISION
+    # =====================================================
 
     if decision not in allowed_decisions:
 
@@ -1483,97 +1482,228 @@ def finalize_case(
         }
 
 
-    # -----------------------------------------------------
-    # Find case
-    # -----------------------------------------------------
+    # =====================================================
+    # TRY SUPABASE FIRST
+    # =====================================================
 
-    connection = get_connection()
-    cursor = connection.cursor()
+    try:
 
-    cursor.execute(
-        """
-        SELECT *
-        FROM cases
-        WHERE case_id = ?
-        """,
-        (case_id,)
-    )
+        supabase = get_supabase()
 
-    case = cursor.fetchone()
+        # -------------------------------------------------
+        # Find cloud case
+        # -------------------------------------------------
+
+        response = (
+            supabase
+            .table("cases")
+            .select("*")
+            .eq("case_id", case_id)
+            .limit(1)
+            .execute()
+        )
+
+        if response.data:
+
+            case = response.data[0]
+
+            previous_decision = case.get(
+                "final_decision"
+            )
+
+            # -------------------------------------------------
+            # Update cloud case
+            # -------------------------------------------------
+
+            update_response = (
+                supabase
+                .table("cases")
+                .update({
+                    "final_decision": decision,
+                    "status": "COMPLETED"
+                })
+                .eq("case_id", case_id)
+                .execute()
+            )
+
+            if update_response.data:
+
+                print(
+                    f"[Cloud Override] "
+                    f"Case {case_id} finalized as "
+                    f"{decision}."
+                )
 
 
-    if case is None:
+                # -------------------------------------------------
+                # Record audit event
+                # -------------------------------------------------
 
+                try:
+
+                    supabase.table(
+                        "case_audit_log"
+                    ).insert({
+
+                        "case_id": case_id,
+
+                        "action": "MANUAL_OVERRIDE",
+
+                        "previous_decision":
+                            previous_decision,
+
+                        "new_decision":
+                            decision
+
+                    }).execute()
+
+                except Exception as audit_error:
+
+                    print(
+                        "[Cloud Audit] "
+                        f"Failed to save audit event: "
+                        f"{audit_error}"
+                    )
+
+
+                return {
+
+                    "message":
+                        "Case finalized successfully",
+
+                    "case_id":
+                        case_id,
+
+                    "final_decision":
+                        decision,
+
+                    "status":
+                        "COMPLETED"
+                }
+
+
+    except Exception as error:
+
+        print(
+            "[Cloud Override] "
+            f"Failed to finalize {case_id}: "
+            f"{error}"
+        )
+
+
+    # =====================================================
+    # FALL BACK TO LOCAL SQLITE
+    # =====================================================
+
+    try:
+
+        connection = get_connection()
+        cursor = connection.cursor()
+
+        cursor.execute(
+            """
+            SELECT *
+            FROM cases
+            WHERE case_id = ?
+            """,
+            (case_id,)
+        )
+
+        case = cursor.fetchone()
+
+
+        if case is None:
+
+            connection.close()
+
+            return {
+                "error": "Case not found"
+            }
+
+
+        # -------------------------------------------------
+        # Previous decision
+        # -------------------------------------------------
+
+        previous_decision = (
+            case["final_decision"]
+        )
+
+
+        # -------------------------------------------------
+        # Update final decision + status
+        # -------------------------------------------------
+
+        cursor.execute(
+            """
+            UPDATE cases
+            SET
+                final_decision = ?,
+                status = ?
+            WHERE case_id = ?
+            """,
+            (
+                decision,
+                "COMPLETED",
+                case_id
+            )
+        )
+
+
+        # -------------------------------------------------
+        # Record audit event
+        # -------------------------------------------------
+
+        cursor.execute(
+            """
+            INSERT INTO case_audit_log (
+                case_id,
+                action,
+                previous_decision,
+                new_decision
+            )
+            VALUES (?, ?, ?, ?)
+            """,
+            (
+                case_id,
+                "MANUAL_OVERRIDE",
+                previous_decision,
+                decision
+            )
+        )
+
+
+        connection.commit()
         connection.close()
 
+
         return {
-            "error": "Case not found"
+
+            "message":
+                "Case finalized successfully",
+
+            "case_id":
+                case_id,
+
+            "final_decision":
+                decision,
+
+            "status":
+                "COMPLETED"
         }
 
 
-    # -----------------------------------------------------
-    # Previous decision
-    # -----------------------------------------------------
+    except Exception as error:
 
-    previous_decision = (
-        case["final_decision"]
-    )
-
-
-    # -----------------------------------------------------
-    # Update final decision + status
-    # -----------------------------------------------------
-
-    cursor.execute(
-        """
-        UPDATE cases
-        SET
-            final_decision = ?,
-            status = ?
-        WHERE case_id = ?
-        """,
-        (
-            decision,
-            "COMPLETED",
-            case_id
+        print(
+            "[Local Override] "
+            f"Failed to finalize {case_id}: "
+            f"{error}"
         )
-    )
 
-
-    # -----------------------------------------------------
-    # Record audit event
-    # -----------------------------------------------------
-
-    cursor.execute(
-        """
-        INSERT INTO case_audit_log (
-            case_id,
-            action,
-            previous_decision,
-            new_decision
-        )
-        VALUES (?, ?, ?, ?)
-        """,
-        (
-            case_id,
-            "MANUAL_OVERRIDE",
-            previous_decision,
-            decision
-        )
-    )
-
-
-    connection.commit()
-    connection.close()
-
-
-    return {
-        "message": "Case finalized successfully",
-        "case_id": case_id,
-        "final_decision": decision,
-        "status": "COMPLETED"
-    }
-
+        return {
+            "error": "Unable to finalize case"
+        }
 
 # =========================================================
 # GET CASE AUDIT HISTORY
