@@ -1714,7 +1714,40 @@ def get_case_audit(
     case_id: str,
     authorized: bool = Depends(verify_api_key)
 ):
+    """
+    Get decision history for a case.
 
+    Cloud-first:
+    1. Try Supabase case_audit_log.
+    2. Fall back to local SQLite if cloud access fails.
+    """
+
+    # ---------------------------------------------------------
+    # 1. Try Supabase first
+    # ---------------------------------------------------------
+    try:
+        supabase = get_supabase()
+
+        response = (
+            supabase
+            .table("case_audit_log")
+            .select(
+                "id, case_id, action, previous_decision, "
+                "new_decision, created_at"
+            )
+            .eq("case_id", case_id)
+            .order("created_at", desc=True)
+            .execute()
+        )
+
+        return response.data or []
+
+    except Exception as cloud_error:
+        print(f"Cloud audit lookup failed: {cloud_error}")
+
+    # ---------------------------------------------------------
+    # 2. Fallback to local SQLite
+    # ---------------------------------------------------------
     connection = get_connection()
     cursor = connection.cursor()
 
@@ -1737,7 +1770,6 @@ def get_case_audit(
     audit_entries = cursor.fetchall()
 
     connection.close()
-
 
     return [
         dict(entry)
