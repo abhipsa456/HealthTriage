@@ -18,11 +18,15 @@ SUPPORTED_REPORT_TYPES = {
 }
 
 
-TESSERACT_PATH = (
-    r"C:\Program Files\Tesseract-OCR\tesseract.exe"
-)
+import os
+import shutil
 
-pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
+TESSERACT_PATH = os.getenv("TESSERACT_CMD") or shutil.which("tesseract")
+
+if TESSERACT_PATH:
+    pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
+else:
+    print("Warning: Tesseract was not found. Image OCR may be unavailable.")
 
 
 # =========================================================
