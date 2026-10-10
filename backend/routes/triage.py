@@ -817,110 +817,88 @@ def debug_supabase():
 # GET ALL CASES
 # =========================================================
 
+
 @router.get("/cases")
 def get_cases():
-
     """
-    Return triage cases for the healthcare staff dashboard.
-
-    Cloud-first:
-    1. Try Supabase
-    2. Fall back to local SQLite if cloud retrieval fails.
-
-    This endpoint is read-only.
+    Return triage cases from Supabase and local SQLite.
+    Deduplicate by case_id, preferring the cloud record.
+    Read-only endpoint.
     """
+    cloud_cases = []
+    local_cases = []
 
-    # =====================================================
-    # TRY CLOUD FIRST
-    # =====================================================
-
+    # Get cloud cases
     try:
-
         supabase = get_supabase()
-
         response = (
             supabase
             .table("cases")
             .select("*")
-            .order(
-                "created_at",
-                desc=True
-            )
+            .order("created_at", desc=True)
             .execute()
         )
-
-        if response.data is not None:
-
-            return response.data
-
-
+        cloud_cases = response.data or []
+        print(f"[Cloud Cases] Retrieved {len(cloud_cases)} cases.")
     except Exception as error:
+        print(f"[Cloud Cases] Failed to retrieve cases: {error}")
 
-        print(
-            "[Cloud Cases] "
-            f"Failed to retrieve cloud cases: {error}"
-        )
-
-
-    # =====================================================
-    # FALL BACK TO LOCAL SQLITE
-    # =====================================================
-
+    # Get local SQLite cases
+    connection = None
     try:
-
         connection = get_connection()
         cursor = connection.cursor()
-
-        cursor.execute(
-            """
+        cursor.execute("""
             SELECT *
             FROM cases
-            ORDER BY
-                CASE
-                    WHEN COALESCE(
-                        final_decision,
-                        triage_level
-                    ) = 'red'
-                        THEN 1
-
-                    WHEN COALESCE(
-                        final_decision,
-                        triage_level
-                    ) = 'yellow'
-                        THEN 2
-
-                    WHEN COALESCE(
-                        final_decision,
-                        triage_level
-                    ) = 'green'
-                        THEN 3
-
-                    ELSE 4
-                END,
-
-                created_at DESC
-            """
-        )
-
-        cases = cursor.fetchall()
-
-        connection.close()
-
-        return [
-            dict(case)
-            for case in cases
-        ]
-
-
+            ORDER BY created_at DESC
+        """)
+        local_cases = [dict(case) for case in cursor.fetchall()]
+        print(f"[Local Cases] Retrieved {len(local_cases)} cases.")
     except Exception as error:
+        print(f"[Local Cases] Failed to retrieve cases: {error}")
+    finally:
+        if connection is not None:
+            connection.close()
 
-        print(
-            "[Local Cases] "
-            f"Failed to retrieve cases: {error}"
+    # Merge, preferring cloud records for duplicate IDs
+    merged = {}
+
+    for case in local_cases:
+        case_id = case.get("case_id")
+        if case_id:
+            merged[case_id] = case
+
+    for case in cloud_cases:
+        case_id = case.get("case_id")
+        if case_id:
+            merged[case_id] = case
+
+    cases = list(merged.values())
+
+    # Sort by triage priority, then newest first
+    def sort_key(case):
+        level = str(
+            case.get("final_decision")
+            or case.get("triage_level")
+            or ""
+        ).lower()
+
+        priority = {
+            "red": 1,
+            "yellow": 2,
+            "green": 3
+        }.get(level, 4)
+
+        return (
+            priority,
+            str(case.get("created_at") or "")
         )
 
-        return []
+    cases.sort(key=sort_key, reverse=False)
 
+    print(f"[Cases] Returning {len(cases)} unique cases.")
+    return cases
 
 # =========================================================
 # GET SINGLE CASE
