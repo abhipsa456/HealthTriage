@@ -6,7 +6,7 @@ import tempfile
 import onnx_asr
 
 from fastapi import APIRouter, UploadFile, File, HTTPException
-
+from huggingface_hub import snapshot_download
 
 router = APIRouter(
     prefix="/api/speech",
@@ -20,27 +20,56 @@ _model = None
 
 
 
+
 def get_odia_model():
     global _model
 
     if _model is None:
-        print("Loading local Odia speech model...")
+        print("Downloading Odia INT8 model files...")
 
         model_dir = os.path.join(
             tempfile.gettempdir(),
             "healthtriage_odia_model"
         )
 
-        os.makedirs(model_dir, exist_ok=True)
+        # Download the INT8 model and its configuration
+        # into one real directory.
+        snapshot_download(
+            repo_id=MODEL_NAME,
+            local_dir=model_dir,
+            allow_patterns=[
+                "config.json",
+                "model.int8.onnx",
+                "vocab.txt"
+            ]
+        )
+
+        required_files = [
+            "config.json",
+            "model.int8.onnx",
+            "vocab.txt"
+        ]
+
+        for filename in required_files:
+            filepath = os.path.join(model_dir, filename)
+
+            if not os.path.isfile(filepath):
+                raise FileNotFoundError(
+                    f"Required Odia model file is missing: {filename}"
+                )
+
+        print("Loading Odia INT8 model from local files...")
 
         _model = onnx_asr.load_model(
             MODEL_NAME,
-            path=model_dir
+            path=model_dir,
+            quantization="int8"
         )
 
         print("Odia speech model loaded successfully.")
 
     return _model
+
 
 
 
