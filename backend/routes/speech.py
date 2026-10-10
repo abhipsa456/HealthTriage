@@ -19,19 +19,29 @@ MODEL_NAME = "OpenVoiceOS/ai4bharat-indicconformer-or-onnx"
 _model = None
 
 
+
 def get_odia_model():
     global _model
 
     if _model is None:
         print("Loading local Odia speech model...")
 
+        model_dir = os.path.join(
+            tempfile.gettempdir(),
+            "healthtriage_odia_model"
+        )
+
+        os.makedirs(model_dir, exist_ok=True)
+
         _model = onnx_asr.load_model(
-            MODEL_NAME
+            MODEL_NAME,
+            path=model_dir
         )
 
         print("Odia speech model loaded successfully.")
 
     return _model
+
 
 
 def find_ffmpeg():
