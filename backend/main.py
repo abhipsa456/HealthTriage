@@ -16,12 +16,15 @@ app = FastAPI(
 # Allow the frontend to communicate with the backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=[
+        "https://healthtriage-frontend2.onrender.com",
+        "http://127.0.0.1:5500",
+        "http://localhost:5500"
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 # Connect the triage routes
 app.include_router(triage_router)
 app.include_router(patient_router)
